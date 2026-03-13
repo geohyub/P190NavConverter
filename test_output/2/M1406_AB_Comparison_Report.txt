@@ -1,0 +1,23 @@
+============================================================
+  Style A vs Style B Position Comparison
+============================================================
+  Common shots matched:  11,596
+
+  Source Position Difference (meters):
+    Mean:    25.71 m
+    Std:     2.11 m
+    P95:     28.79 m
+    Max:     32.18 m
+
+  Receiver Position Difference (16 channels):
+    Mean:    24.17 m
+    Max:     31.86 m
+
+  Directional Analysis:
+    Heading diff (A-B):   -31.6 deg
+    Spread dir A (mean):  271.4 deg
+    Spread dir B (mean):  277.7 deg
+    Feathering angle:     31.6 deg
+
+  Assessment: POOR - GPS 보간 또는 설정 점검 필요
+============================================================

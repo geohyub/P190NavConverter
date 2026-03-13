@@ -1,0 +1,25 @@
+============================================================
+P190 NavConverter — QC Report
+============================================================
+
+Line Name    : M1406
+Style        : A
+UTM Zone     : 51N
+EPSG         : 32651
+
+--- Record Summary ---
+H Records    : 25
+S Records    : 11596 (shots)
+R Records    : 69576
+Total Lines  : 81197
+
+--- Validation ---
+Status       : PASS
+80-col Errors: 0
+Invalid Recs : 0
+
+--- Estimates ---
+R lines/shot : 6.0
+Channels est : ~18
+
+============================================================
