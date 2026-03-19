@@ -17,7 +17,7 @@ from p190converter.engine.qc.comparison import _parse_s_records
 
 # Paths
 TRACK = r'C:\Users\JWONLINETEAM\Desktop\QC_인수인계_이종현\03_소프트웨어\Feathering\Sample\M1406_track.txt'
-P190_A = r'D:\Geoview_Junhyub\2025\자산관리\소프트웨어\P190_NavConverter\test_output\M1406_Test_S_M1406_Test.p190'
+P190_A = r'E:\Software\P190_NavConverter\test_output\M1406_Test_S_M1406_Test.p190'
 
 # 1. Load Track reference
 track_data = parse_track_file(TRACK)

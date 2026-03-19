@@ -3,8 +3,8 @@
 import sys, os, numpy as np
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-A = r'D:\Geoview_Junhyub\2025\자산관리\소프트웨어\P190_NavConverter\test_output\M1406_A_S_M1406_A.p190'
-B = r'D:\Geoview_Junhyub\2025\자산관리\소프트웨어\P190_NavConverter\test_output\M1406_S_M1406.p190'
+A = r'E:\Software\P190_NavConverter\test_output\M1406_A_S_M1406_A.p190'
+B = r'E:\Software\P190_NavConverter\test_output\M1406_S_M1406.p190'
 
 def parse_shot_data(filepath, max_shots=None):
     """Parse S and R records, returning list of (ffid, source_xy, {ch: (x,y)})."""

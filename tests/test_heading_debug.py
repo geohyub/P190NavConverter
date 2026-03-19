@@ -12,7 +12,7 @@ from p190converter.engine.geometry.interpolation import compute_heading
 
 TRACK = r'C:\Users\JWONLINETEAM\Desktop\QC_인수인계_이종현\03_소프트웨어\Feathering\Sample\M1406_track.txt'
 NPD = r'C:\Users\JWONLINETEAM\Desktop\QC_인수인계_이종현\03_소프트웨어\Feathering\Sample\20250721_133809_C\20250721_133809_C.NPD'
-HEADER = r'D:\Geoview_Junhyub\2025\자산관리\소프트웨어\P190_NavConverter\test_output\M1406_Header.txt'
+HEADER = r'E:\Software\P190_NavConverter\test_output\M1406_Header.txt'
 
 # Parse Track
 track = parse_track_file(TRACK)

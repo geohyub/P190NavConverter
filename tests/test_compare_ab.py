@@ -6,8 +6,8 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import numpy as np
 from p190converter.engine.qc.comparison import compare_p190_files
 
-A = r'D:\Geoview_Junhyub\2025\자산관리\소프트웨어\P190_NavConverter\test_output\M1406_A_S_M1406_A.p190'
-B = r'D:\Geoview_Junhyub\2025\자산관리\소프트웨어\P190_NavConverter\test_output\M1406_S_M1406.p190'
+A = r'E:\Software\P190_NavConverter\test_output\M1406_A_S_M1406_A.p190'
+B = r'E:\Software\P190_NavConverter\test_output\M1406_S_M1406.p190'
 
 result = compare_p190_files(A, B)
 print(f'Common shots: {result.n_common_shots}')
