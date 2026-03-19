@@ -133,7 +133,8 @@ class ConversionPipeline:
         # QC Report
         qc_result = validate_p190(self.output_path)
         report_text = generate_qc_report(qc_result, config)
-        report_path = self.output_path.replace(".p190", "_QC_Report.txt")
+        out = Path(self.output_path)
+        report_path = str(out.with_name(out.stem + "_QC_Report.txt"))
         with open(report_path, "w", encoding="utf-8") as f:
             f.write(report_text)
         self._log("info", f"QC 리포트 저장: {report_path}")

@@ -538,7 +538,8 @@ class App:
             self._window.after(0, self._window.status_bar.set_step_label, "")
 
             # Success
-            report_path = output_path.replace(".p190", "_QC_Report.txt")
+            _out = Path(output_path)
+            report_path = str(_out.with_name(_out.stem + "_QC_Report.txt"))
             self._window.after(0, self._on_conversion_done,
                                output_path, report_path)
 
@@ -774,13 +775,14 @@ class App:
         # Auto-export report and plot
         from .engine.qc.feathering_analysis import generate_feathering_report
         report = generate_feathering_report(result)
-        report_path = output_path.replace(".p190", "_Feathering_Report.txt")
+        _out = Path(output_path)
+        report_path = str(_out.with_name(_out.stem + "_Feathering_Report.txt"))
         with open(report_path, "w", encoding="utf-8") as f:
             f.write(report)
 
         try:
             from .engine.qc.feathering_plot import generate_feathering_overview
-            plot_path = output_path.replace(".p190", "_Feathering_Overview.png")
+            plot_path = str(_out.with_name(_out.stem + "_Feathering_Overview.png"))
             generate_feathering_overview(result, plot_path, line_name=line_name)
             self._log.append("success",
                              f"Feathering overview: {plot_path}")

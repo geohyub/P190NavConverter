@@ -13,6 +13,7 @@ NPD Format Types:
 """
 
 import re
+import warnings
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Union
 
@@ -247,6 +248,7 @@ def parse_npd(
 
     # Parse data lines
     records = []
+    skipped_count = 0
     for line in lines[header_idx + 1:]:
         stripped = line.strip()
         if not stripped:
@@ -271,6 +273,7 @@ def parse_npd(
 
         # Skip invalid records
         if np.isnan(e_val) or np.isnan(n_val):
+            skipped_count += 1
             continue
 
         # Time
@@ -290,6 +293,12 @@ def parse_npd(
             "lon": lon_val,
             "height": _safe_float(height_str),
         })
+
+    if skipped_count > 0:
+        warnings.warn(
+            f"NPD source '{sel['name']}': {skipped_count} record(s) skipped "
+            f"(invalid East/North), {len(records)} valid"
+        )
 
     if not records:
         raise ValueError(
