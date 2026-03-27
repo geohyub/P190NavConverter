@@ -1,0 +1,114 @@
+========================================================================
+  FEATHERING ANALYSIS REPORT
+  Cable Model: GeoEel Solid LH-16 (D=44.5mm, polyurethane)
+========================================================================
+
+  1. SURVEY OVERVIEW
+  ----------------------------------------
+     Total shots:      11,596
+     Clean shots:      6,914
+     Turning shots:    4,682 (40.4%)
+     Channels:         16
+     Group interval:   1.000 m
+     Total spread:     15.0 m
+
+  2. VESSEL DYNAMICS
+  ----------------------------------------
+     Speed (mean):     4.11 knots
+     Speed (range):    2.26 ~ 5.90 knots
+     Speed (std):      0.39 knots
+
+  3. FEATHERING ANGLE (clean shots, excl. turns)
+  ----------------------------------------
+     Mean:             +10.24 deg
+     |Mean|:           10.69 deg
+     Std:              6.76 deg
+     Min:              -81.63 deg
+     Max:              +31.94 deg
+     Assessment:       MODERATE - 일반적 수준, 보정 필요
+
+  4. CROSS-TRACK DISPLACEMENT (Tail vs Head)
+  ----------------------------------------
+     Mean:             -9.33 m
+     |Mean|:           9.73 m
+     Min:              -27.72 m
+     Max:              +49.12 m
+     Std:              6.07 m
+     Dominant drift:   PORT
+
+  5. ESTIMATED CROSS-CURRENT
+  ----------------------------------------
+     Mean speed:       0.399 m/s (0.78 knots)
+     Max speed:        1.380 m/s
+     Note: First-order approximation from tan(feathering)
+           Actual current may differ due to cable dynamics
+
+  6. TOW TENSION ESTIMATE
+  ----------------------------------------
+     Mean tension:     5964.3 N (607.98 kgf)
+     Max tension:      12360.2 N (1259.96 kgf)
+     Cable diameter:   44.5 mm
+     Drag coeff (Cd):  1.1
+     Note: Simplified drag model F = 0.5*rho*Cd*D*V^2*L
+           Low tension confirms UHR cables are
+           susceptible to cross-current displacement
+
+  7. PER-CHANNEL POSITION CORRECTION (alpha=2.0)
+  ----------------------------------------
+     Mean (all ch):    1.104 m
+     Max  (all ch):    10.357 m
+     RX1  (mean):      0.000 m
+     RX16  (mean):      1.964 m
+
+         CH   Mean(m)    Max(m)
+     ----------------------------
+          1     0.000     0.000
+          2     0.180     0.969
+          3     0.352     1.899
+          4     0.518     2.789
+          5     0.676     3.639
+          6     0.828     4.449
+          7     0.973     5.219
+          8     1.111     5.949
+          9     1.242     6.640
+         10     1.366     7.290
+         11     1.483     7.901
+         12     1.593     8.472
+         13     1.696     9.003
+         14     1.793     9.494
+         15     1.882     9.946
+         16     1.964    10.357
+
+  8. ALPHA SENSITIVITY
+  ----------------------------------------
+        alpha  Mean Correction(m)                  Note
+     --------------------------------------------------
+          1.0               0.000  (=linear, no correction)
+          1.5               0.777  
+          2.0               1.104  (quadratic, default)
+          2.5               1.247  
+          3.0               1.313  
+          4.0               1.358  
+
+  9. PHYSICAL VARIABLES AFFECTING FEATHERING
+  ----------------------------------------
+     Variable                  Measured/Estimated  Impact
+     ------------------------------------------------------------
+     Cross-current             0.399 m/s             PRIMARY
+     Vessel speed              4.11 knots             HIGH
+     Tow tension               5964.3 N                HIGH
+     Cable diameter             44.5 mm              MEDIUM
+     Cable spread               15.0 m              MEDIUM
+     Feathering angle          10.7 deg              RESULT
+     Cable weight              ~neutrally buoyant     LOW
+     Water depth               not measured           INDIRECT
+     Tidal cycle               see time series        VARIABLE
+
+  10. CABLE CHORD (Head-Tail distance)
+  ----------------------------------------
+     Mean:             52.7 m
+     Std:              1.24 m
+     Nominal spread:   15.0 m
+     Mean stretch:     +37.7 m
+
+========================================================================

@@ -116,6 +116,7 @@ def load_full_config() -> Optional[Dict[str, Any]]:
         "gps_sources": settings.get("last_gps_sources"),
         "export_options": settings.get("last_export_options", {}),
         "vessel": settings.get("last_vessel"),
+        "h_records": settings.get("last_h_records"),
     }
 
     # Validate file paths exist
