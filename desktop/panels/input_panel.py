@@ -17,6 +17,12 @@ from desktop.widgets.section_card import SectionCard
 from desktop.widgets.drop_zone import FileDropZone
 from desktop.widgets.form_field import FormField
 from desktop.widgets.stat_card import StatCard
+from desktop.services.explanation_service import (
+    SOURCE_POSITION_OPTIONS,
+    SOURCE_POSITION_DESCRIPTIONS,
+    build_conversion_story,
+    describe_coord_decimals,
+)
 
 
 class InputPanel(QWidget):
@@ -108,6 +114,13 @@ class InputPanel(QWidget):
         self._update_style_buttons()
         style_card.content_layout.addLayout(style_row)
 
+        self._mode_desc = QLabel("")
+        self._mode_desc.setWordWrap(True)
+        self._mode_desc.setStyleSheet(
+            f"color: {Dark.MUTED}; font-size: {Font.XS}px;"
+            f" background:transparent; border:none;")
+        style_card.content_layout.addWidget(self._mode_desc)
+
         # Batch mode toggle
         batch_row = QHBoxLayout()
         self._batch_check = QCheckBox("Batch Mode (multiple files)")
@@ -142,14 +155,14 @@ class InputPanel(QWidget):
             "NPD File (NaviPac navigation)",
             "NPD Files (*.NPD *.npd);;All (*)")
         self._npd_drop.file_selected.connect(
-            lambda p: self.file_loaded.emit("npd", p))
+            lambda p: self._handle_file_selected("npd", p))
         a_layout.addWidget(self._npd_drop)
 
         self._track_drop = FileDropZone(
             "Track File (header export)",
             "Track Files (*.txt *.tsv *.csv);;All (*)")
         self._track_drop.file_selected.connect(
-            lambda p: self.file_loaded.emit("track", p))
+            lambda p: self._handle_file_selected("track", p))
         a_layout.addWidget(self._track_drop)
 
         # GPS source selection
@@ -179,6 +192,38 @@ class InputPanel(QWidget):
                     padding: 4px 8px; font-size: {Font.SM}px;
                 }}
             """)
+            w.currentTextChanged.connect(self._refresh_explanation)
+
+        basis_row = QHBoxLayout()
+        basis_row.setSpacing(Space.SM)
+        basis_lbl = QLabel("Source Basis:")
+        basis_lbl.setStyleSheet(
+            f"color: {Dark.MUTED}; font-size: {Font.SM}px;"
+            f" background:transparent; border:none;")
+        basis_row.addWidget(basis_lbl)
+        self._source_mode = QComboBox()
+        self._source_mode.setMinimumWidth(220)
+        self._source_mode.setStyleSheet(f"""
+            QComboBox {{
+                background: {Dark.DARK}; color: {Dark.TEXT};
+                border: 1px solid {Dark.BORDER};
+                border-radius: {Radius.SM}px;
+                padding: 4px 8px; font-size: {Font.SM}px;
+            }}
+        """)
+        for key, label in SOURCE_POSITION_OPTIONS:
+            self._source_mode.addItem(label, userData=key)
+        self._source_mode.currentIndexChanged.connect(self._refresh_explanation)
+        basis_row.addWidget(self._source_mode)
+        basis_row.addStretch()
+        a_layout.addLayout(basis_row)
+
+        self._source_mode_hint = QLabel("")
+        self._source_mode_hint.setWordWrap(True)
+        self._source_mode_hint.setStyleSheet(
+            f"color: {Dark.MUTED}; font-size: {Font.XS}px;"
+            f" background:transparent; border:none;")
+        a_layout.addWidget(self._source_mode_hint)
 
         self._input_stack.addWidget(style_a)
 
@@ -192,7 +237,7 @@ class InputPanel(QWidget):
             "RadExPro Header Export (TSV)",
             "TSV Files (*.txt *.tsv);;All (*)")
         self._radex_drop.file_selected.connect(
-            lambda p: self.file_loaded.emit("radex", p))
+            lambda p: self._handle_file_selected("radex", p))
         b_layout.addWidget(self._radex_drop)
 
         self._input_stack.addWidget(style_b)
@@ -213,9 +258,29 @@ class InputPanel(QWidget):
         self._radex_decimals = FormField(
             "Coord Dec.", "5", label_width=80)
         self._radex_decimals.value = "5"
+        self._radex_decimals.value_changed.connect(self._refresh_explanation)
         common_card.content_layout.addWidget(self._radex_decimals)
 
+        self._coord_hint = QLabel("")
+        self._coord_hint.setWordWrap(True)
+        self._coord_hint.setStyleSheet(
+            f"color: {Dark.MUTED}; font-size: {Font.XS}px;"
+            f" background:transparent; border:none;")
+        common_card.content_layout.addWidget(self._coord_hint)
+
         layout.addWidget(common_card)
+
+        self._story_card = SectionCard("Current Conversion Story")
+        self._story_label = QLabel("")
+        self._story_label.setWordWrap(True)
+        self._story_label.setStyleSheet(f"""
+            color: {Dark.TEXT};
+            font-size: {Font.SM}px;
+            background: transparent;
+            border: none;
+        """)
+        self._story_card.content_layout.addWidget(self._story_label)
+        layout.addWidget(self._story_card)
 
         # ── Summary Stats ──
         stats_row = QHBoxLayout()
@@ -229,6 +294,7 @@ class InputPanel(QWidget):
         layout.addLayout(stats_row)
 
         layout.addStretch()
+        self._refresh_explanation()
 
     # ── Style switching ──
 
@@ -236,6 +302,7 @@ class InputPanel(QWidget):
         self._current_style = style
         self._input_stack.setCurrentIndex(0 if style == "A" else 1)
         self._update_style_buttons()
+        self._refresh_explanation()
         self.style_changed.emit(style)
         self._controller.style_changed.emit(style)
 
@@ -278,6 +345,7 @@ class InputPanel(QWidget):
             "line_name": self._line_name.value,
             "front_gps": self._front_gps.currentText(),
             "tail_gps": self._tail_gps.currentText(),
+            "source_position_mode": self.get_source_position_mode(),
             "radex_coord_decimals": self._radex_decimals.value,
             "batch_mode": self._batch_check.isChecked(),
             "batch_files": list(self._batch_files),
@@ -288,9 +356,23 @@ class InputPanel(QWidget):
 
     def set_line_name(self, name: str):
         self._line_name.value = name
+        self._refresh_explanation()
 
     def set_radex_coord_decimals(self, val):
         self._radex_decimals.value = str(val)
+        self._refresh_explanation()
+
+    def get_source_position_mode(self) -> str:
+        mode = self._source_mode.currentData()
+        return str(mode or "front_gps")
+
+    def set_source_position_mode(self, mode: str):
+        key = mode or "front_gps"
+        idx = self._source_mode.findData(key)
+        if idx < 0:
+            idx = 0
+        self._source_mode.setCurrentIndex(idx)
+        self._refresh_explanation()
 
     def update_summary(self, text: str):
         """Parse summary text: 'Shots: N | Channels: N | FFID: lo-hi'."""
@@ -303,11 +385,13 @@ class InputPanel(QWidget):
                 self._stat_channels.set_value(part.split(":")[1].strip())
             elif part.startswith("FFID"):
                 self._stat_ffid.set_value(part.split(":")[1].strip())
+        self._refresh_explanation()
 
     def update_gps_sources(self, sources: list[str]):
         for combo in (self._front_gps, self._tail_gps):
             combo.clear()
             combo.addItems(sources)
+        self._refresh_explanation()
 
     def set_selected_gps_sources(self, front: str, tail: str):
         idx = self._front_gps.findText(front)
@@ -316,6 +400,7 @@ class InputPanel(QWidget):
         idx = self._tail_gps.findText(tail)
         if idx >= 0:
             self._tail_gps.setCurrentIndex(idx)
+        self._refresh_explanation()
 
     def restore_config(self, saved: dict):
         style = saved.get("style", "B")
@@ -335,9 +420,12 @@ class InputPanel(QWidget):
         if gps:
             self.set_selected_gps_sources(
                 gps.get("front", ""), gps.get("tail", ""))
+        if saved.get("source_position_mode"):
+            self.set_source_position_mode(saved["source_position_mode"])
         if saved.get("export_options", {}).get("radex_coord_decimals"):
             self._radex_decimals.value = str(
                 saved["export_options"]["radex_coord_decimals"])
+        self._refresh_explanation()
 
     def refresh_profiles(self):
         from desktop.services.settings_service import SettingsService
@@ -355,6 +443,7 @@ class InputPanel(QWidget):
         else:
             self._batch_files.clear()
             self._batch_info.setVisible(False)
+        self._refresh_explanation()
 
     def _browse_batch(self):
         if self._current_style == "B":
@@ -386,6 +475,7 @@ class InputPanel(QWidget):
                     self._batch_check.setChecked(False)
             else:
                 self._batch_check.setChecked(False)
+        self._refresh_explanation()
 
     # ── Browse ──
 
@@ -393,6 +483,7 @@ class InputPanel(QWidget):
         path = QFileDialog.getExistingDirectory(self, "Output Directory")
         if path:
             self._output_dir.value = path
+            self._refresh_explanation()
 
     # ── Profile management (delegated to main.py) ──
 
@@ -414,3 +505,33 @@ class InputPanel(QWidget):
         if not name:
             return
         self._controller.profile_deleted.emit(name)
+
+    def _handle_file_selected(self, file_type: str, path: str):
+        self._refresh_explanation()
+        self.file_loaded.emit(file_type, path)
+
+    def _refresh_explanation(self, *_):
+        style = self._current_style
+        self._mode_desc.setText(
+            "Style A rebuilds source/receiver geometry from Track timing + NPD GPS + offsets."
+            if style == "A"
+            else "Style B repackages an existing RadExPro geometry export into the P190 delivery format."
+        )
+
+        coord_text, coord_ok = describe_coord_decimals(self._radex_decimals.value)
+        self._coord_hint.setText(coord_text)
+        self._coord_hint.setStyleSheet(
+            f"color: {Dark.MUTED if coord_ok else '#F59E0B'};"
+            f" font-size: {Font.XS}px; background:transparent; border:none;"
+        )
+
+        source_mode = self.get_source_position_mode()
+        self._source_mode_hint.setText(
+            SOURCE_POSITION_DESCRIPTIONS.get(
+                source_mode, SOURCE_POSITION_DESCRIPTIONS["front_gps"]
+            )
+        )
+
+        self._story_label.setText(
+            build_conversion_story(style, self.get_config_values())
+        )

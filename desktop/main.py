@@ -31,6 +31,8 @@ from desktop.app_controller import AppController
 from desktop.widgets.toast import ToastManager
 from desktop.services.conversion_service import ConversionWorker
 from desktop.services.settings_service import SettingsService
+from desktop.services.explanation_service import SOURCE_POSITION_DESCRIPTIONS
+from desktop.services.language_service import LanguageService
 
 from desktop.panels.input_panel import InputPanel
 from desktop.panels.header_panel import HeaderPanel
@@ -45,6 +47,18 @@ from desktop.panels.help_panel import HelpPanel
 
 # Panels that require Style A
 STYLE_A_ONLY = {"geometry", "feathering"}
+PANEL_LABEL_KEYS = {
+    "input": "sidebar.input",
+    "header": "sidebar.header",
+    "crs": "sidebar.crs",
+    "geometry": "sidebar.geometry",
+    "preview": "sidebar.preview",
+    "log": "sidebar.log",
+    "results": "sidebar.results",
+    "feathering": "sidebar.feathering",
+    "comparison": "sidebar.comparison",
+    "help": "sidebar.help",
+}
 
 
 class P190App(GeoViewApp):
@@ -57,17 +71,28 @@ class P190App(GeoViewApp):
     def __init__(self):
         self.controller = AppController()
         self._settings = SettingsService()
+        self._language = LanguageService(self._settings.load_ui_language())
         super().__init__()
+
+        self._comparison.set_language_service(self._language)
+        self._lang_btn = self.top_bar.add_action_button(
+            self._language.text("top.language_button"),
+            self._toggle_language,
+        )
+        self._lang_btn.setToolTip("Toggle Korean / English")
+        self._language.language_changed.connect(self._on_language_changed)
 
         self.toast_mgr = ToastManager(self.content_stack)
         self.controller.toast_requested.connect(self.toast_mgr.show_toast)
 
         self._current_style = "B"
         self._collection = None
+        self._latest_collection = None
         self._converting = False
         self._start_time = None
         self._worker = None
         self._worker_thread = None
+        self._recent_outputs = {"A": "", "B": ""}
         self._elapsed_timer = QTimer(self)
         self._elapsed_timer.setInterval(1000)
         self._elapsed_timer.timeout.connect(self._update_elapsed)
@@ -76,6 +101,7 @@ class P190App(GeoViewApp):
         self._connect_conversion()
         self._setup_shortcuts()
         self._load_saved_settings()
+        self._on_language_changed(self._language.current_language)
 
     # ------------------------------------------------------------------ #
     #  Panel Setup (called by GeoViewApp.__init__)
@@ -133,6 +159,7 @@ class P190App(GeoViewApp):
         c.navigate_feathering.connect(lambda: self._switch_to("feathering"))
         c.navigate_comparison.connect(lambda: self._switch_to("comparison"))
         c.navigate_help.connect(lambda: self._switch_to("help"))
+        self._results.request_compare.connect(self._open_recent_comparison)
 
         # Style change → enable/disable Style A panels
         c.style_changed.connect(self._on_style_changed)
@@ -174,6 +201,49 @@ class P190App(GeoViewApp):
 
         self._log.append("info", f"Mode changed to Style {style}")
 
+    def _toggle_language(self):
+        self._language.toggle()
+
+    def _on_language_changed(self, language: str):
+        try:
+            self._settings.save_ui_language(language)
+        except Exception:
+            pass
+
+        self._lang_btn.setText(self._language.text("top.language_button"))
+        for btn in self.sidebar.buttons:
+            key = PANEL_LABEL_KEYS.get(btn.panel_id)
+            if key:
+                btn.setText(self._language.text(key))
+
+        for panel_id, panel in self._panels.items():
+            key = PANEL_LABEL_KEYS.get(panel_id)
+            if key:
+                panel.panel_title = self._language.text(key)
+
+        self._comparison.apply_language()
+        if self._current_panel and self._current_panel in self._panels:
+            self.top_bar.set_title(self._panels[self._current_panel].panel_title)
+
+    def _open_recent_comparison(self):
+        style_a = self._recent_outputs.get("A", "")
+        style_b = self._recent_outputs.get("B", "")
+        if not style_a or not style_b:
+            self.controller.show_toast(
+                "Need both recent Style A and Style B outputs to compare",
+                "warning",
+            )
+            return
+        if not Path(style_a).exists() or not Path(style_b).exists():
+            self.controller.show_toast(
+                "Recent comparison outputs are missing on disk",
+                "warning",
+            )
+            return
+
+        self._switch_to("comparison")
+        self._comparison.compare_paths(style_a, style_b)
+
     # ------------------------------------------------------------------ #
     #  File Loading & Parsing
     # ------------------------------------------------------------------ #
@@ -193,6 +263,7 @@ class P190App(GeoViewApp):
             detected = detect_line_name(path)
             if detected:
                 self._input.set_line_name(detected)
+                self._preview.set_line_name(detected)
                 self._log.append("info", f"Line name auto-detected: {detected}")
 
     def _load_radex_file(self, path: str):
@@ -266,6 +337,11 @@ class P190App(GeoViewApp):
                 "success",
                 f"Track: {n:,} shots, {ch if ch > 0 else '--'} ch, "
                 f"FFID {ffid_lo}-{ffid_hi}")
+
+            self._preview.set_track_data(
+                track_data,
+                self._input.get_line_name() or Path(path).stem,
+            )
 
             for warn_msg in track_data.warnings:
                 self._log.append("warning", warn_msg)
@@ -349,6 +425,8 @@ class P190App(GeoViewApp):
             track_file=input_vals.get("track_file", ""),
             front_gps_source=input_vals.get("front_gps", ""),
             tail_gps_source=input_vals.get("tail_gps", ""),
+            source_position_mode=input_vals.get(
+                "source_position_mode", "front_gps"),
             radex_coord_decimals=radex_decimals,
             crs=self._crs.get_crs_config(),
             h_records=self._header.get_h_record_config(),
@@ -371,6 +449,7 @@ class P190App(GeoViewApp):
         self._worker_thread.started.connect(self._worker.run)
         self._worker.finished.connect(self._worker_thread.quit)
         self._worker.error.connect(self._worker_thread.quit)
+        self._worker.preview_ready.connect(self._on_preview_ready)
         self._worker_thread.finished.connect(self._worker_thread.deleteLater)
         self._worker_thread.start()
 
@@ -385,6 +464,7 @@ class P190App(GeoViewApp):
             try:
                 self._worker.finished.disconnect()
                 self._worker.error.disconnect()
+                self._worker.preview_ready.disconnect()
             except (RuntimeError, TypeError):
                 pass
             self._worker.deleteLater()
@@ -417,28 +497,34 @@ class P190App(GeoViewApp):
             f"Conversion complete ({elapsed:.1f}s)", "success")
 
         # Update results panel
+        input_vals = self._input.get_config_values()
+        style = input_vals.get("style", "B")
+        self._results.set_context(
+            style=style,
+            source_position_mode=input_vals.get(
+                "source_position_mode", "front_gps"),
+            radex_coord_decimals=input_vals.get("radex_coord_decimals", 5),
+            warnings=self._log.get_messages("warning"),
+            elapsed_seconds=elapsed,
+        )
         self._results.set_output(output_path, report_path)
+        if self._latest_collection:
+            self._results.set_collection(self._latest_collection)
+        self._recent_outputs[style] = output_path
+        self._comparison.set_file_paths(
+            style_a=self._recent_outputs.get("A", ""),
+            style_b=self._recent_outputs.get("B", ""),
+        )
 
         # QC validation
         try:
             from p190converter.engine.qc.validator import validate_p190
             qc = validate_p190(output_path)
-            details = (
-                f"Total lines:  {qc.total_lines:,}\n"
-                f"H Records:    {qc.h_records}\n"
-                f"S Records:    {qc.s_records:,}\n"
-                f"R Records:    {qc.r_records:,}\n"
-                f"Line errors:  {qc.line_length_errors}\n"
-                f"Issues:       {len(qc.issues)}"
-            )
-            self._results.set_qc_result(qc.passed, details)
+            self._results.set_qc_result(qc)
         except Exception as e:
             self._log.append("warning", f"QC validation skipped: {e}")
 
         self._switch_to("results")
-
-        # Read config once for both feathering and session save
-        input_vals = self._input.get_config_values()
 
         # Auto-run feathering analysis for Style A (in background thread)
         if input_vals.get("style") == "A":
@@ -452,6 +538,36 @@ class P190App(GeoViewApp):
                 self._header.get_h_record_config())
         except Exception:
             pass
+
+    def _on_preview_ready(self, collection, context: dict):
+        """Update preview/results with the final exported collection."""
+        if not collection:
+            return
+
+        self._latest_collection = collection
+        line_name = context.get("line_name", "")
+        if line_name:
+            self._preview.set_line_name(line_name)
+
+        style = context.get("style", "B")
+        note = context.get("note", "")
+        if style == "A":
+            input_vals = self._input.get_config_values()
+            source_mode = input_vals.get("source_position_mode", "front_gps")
+            source_desc = SOURCE_POSITION_DESCRIPTIONS.get(
+                source_mode, SOURCE_POSITION_DESCRIPTIONS["front_gps"]
+            )
+            note = (
+                f"{note} Active source basis: {source_desc}"
+            )
+
+        self._preview.set_collection(
+            collection,
+            preview_mode=context.get("preview_mode", "converted_geometry"),
+            note=note,
+            warnings=context.get("warnings", []),
+        )
+        self._results.set_collection(collection)
 
     def _on_conversion_error(self, error: str, tb: str):
         self._converting = False
@@ -622,6 +738,8 @@ class P190App(GeoViewApp):
                 "front": input_vals.get("front_gps", ""),
                 "tail": input_vals.get("tail_gps", ""),
             },
+            "source_position_mode": input_vals.get(
+                "source_position_mode", "front_gps"),
             "export_options": {
                 "radex_coord_decimals": input_vals.get(
                     "radex_coord_decimals", "5"),

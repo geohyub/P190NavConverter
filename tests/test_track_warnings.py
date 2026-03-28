@@ -1,5 +1,9 @@
 # -*- coding: utf-8 -*-
 """Test Track parser warning messages."""
+if __name__ != "__main__":
+    import pytest
+    pytest.skip("Diagnostic script; run directly for manual warning inspection.", allow_module_level=True)
+
 import sys, os, tempfile
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 

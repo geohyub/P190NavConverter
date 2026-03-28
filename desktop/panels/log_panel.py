@@ -30,6 +30,7 @@ class LogPanel(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self._entries: list[str] = []
+        self._records: list[tuple[str, str, str]] = []
         self._build_ui()
 
     def _build_ui(self):
@@ -95,6 +96,7 @@ class LogPanel(QWidget):
             f'<span style="color:{color}">[{level.upper():7s}]</span> '
             f'<span style="color:{Dark.TEXT}">{message}</span>')
         self._entries.append(f"{ts} [{level.upper()}] {message}")
+        self._records.append((ts, level, message))
         self._text.append(html)
         # Auto-scroll
         sb = self._text.verticalScrollBar()
@@ -103,6 +105,7 @@ class LogPanel(QWidget):
     def clear(self):
         self._text.clear()
         self._entries.clear()
+        self._records.clear()
         self._step_indicator.reset()
         self._step_indicator.setVisible(False)
 
@@ -116,6 +119,11 @@ class LogPanel(QWidget):
     def set_step(self, index: int, state: str):
         self._step_indicator.setVisible(True)
         self._step_indicator.set_step(index, state)
+
+    def get_messages(self, level: str | None = None) -> list[str]:
+        if level is None:
+            return [message for _, _, message in self._records]
+        return [message for _, msg_level, message in self._records if msg_level == level]
 
     def _export(self):
         path, _ = QFileDialog.getSaveFileName(

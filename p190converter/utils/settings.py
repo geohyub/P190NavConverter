@@ -73,6 +73,7 @@ def save_full_config(config: SurveyConfig):
             "front": config.front_gps_source,
             "tail": config.tail_gps_source,
         },
+        "last_source_position_mode": config.source_position_mode,
         "last_export_options": {
             "radex_coord_decimals": config.radex_coord_decimals,
         },
@@ -114,6 +115,8 @@ def load_full_config() -> Optional[Dict[str, Any]]:
         "crs": settings.get("last_crs"),
         "geometry": settings.get("last_geometry"),
         "gps_sources": settings.get("last_gps_sources"),
+        "source_position_mode": settings.get(
+            "last_source_position_mode", "front_gps"),
         "export_options": settings.get("last_export_options", {}),
         "vessel": settings.get("last_vessel"),
         "h_records": settings.get("last_h_records"),

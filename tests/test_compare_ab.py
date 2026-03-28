@@ -1,5 +1,9 @@
 # -*- coding: utf-8 -*-
 """Compare Style A v2 vs Style B P190 outputs."""
+if __name__ != "__main__":
+    import pytest
+    pytest.skip("Diagnostic script for local sample files.", allow_module_level=True)
+
 import sys, os
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 

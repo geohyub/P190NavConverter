@@ -14,6 +14,7 @@ class ConversionWorker(QObject):
 
     finished = Signal(str, str)   # output_path, report_path
     error = Signal(str, str)      # error_message, traceback
+    preview_ready = Signal(object, object)  # collection, preview context dict
 
     def __init__(self, config, controller, parent=None):
         super().__init__(parent)
@@ -44,6 +45,20 @@ class ConversionWorker(QObject):
             else:
                 output_path = pipeline.run_style_a(
                     self._config, progress_cb)
+
+            preview_note = (
+                "Converted Style A geometry preview. Source, heading, and receiver spread reflect the exported settings after interpolation."
+                if self._config.style == "A"
+                else "Converted Style B geometry preview. Source and receiver positions reflect the exported RadEx geometry."
+            )
+            preview_context = {
+                "style": self._config.style,
+                "line_name": self._config.line_name,
+                "preview_mode": "converted_geometry",
+                "note": preview_note,
+                "warnings": [],
+            }
+            self.preview_ready.emit(pipeline.collection, preview_context)
 
             self._step(1, "done")
             self._step(2, "active")
@@ -125,6 +140,8 @@ class BatchConversionWorker(QObject):
                     track_file=self._input_vals.get("track_file", ""),
                     front_gps_source=self._input_vals.get("front_gps", ""),
                     tail_gps_source=self._input_vals.get("tail_gps", ""),
+                    source_position_mode=self._input_vals.get(
+                        "source_position_mode", "front_gps"),
                     radex_coord_decimals=radex_decimals,
                     crs=self._crs,
                     h_records=self._h_records,

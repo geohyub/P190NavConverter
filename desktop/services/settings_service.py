@@ -12,7 +12,9 @@ if _P190_ROOT not in sys.path:
 
 from p190converter.utils.settings import (
     load_full_config,
+    load_settings,
     save_full_config,
+    save_settings,
     save_profile,
     load_profile,
     delete_profile,
@@ -22,6 +24,13 @@ from p190converter.utils.settings import (
 
 class SettingsService:
     """Adapter for p190converter settings persistence."""
+
+    def load_ui_language(self) -> str:
+        settings = load_settings()
+        return settings.get("ui_language", "ko")
+
+    def save_ui_language(self, language: str):
+        save_settings({"ui_language": language})
 
     def load_session(self) -> dict | None:
         """Load last session config."""
@@ -40,6 +49,8 @@ class SettingsService:
             track_file=input_vals.get("track_file", ""),
             front_gps_source=input_vals.get("front_gps", ""),
             tail_gps_source=input_vals.get("tail_gps", ""),
+            source_position_mode=input_vals.get(
+                "source_position_mode", "front_gps"),
             radex_coord_decimals=int(
                 input_vals.get("radex_coord_decimals", 5)),
             crs=crs_config,

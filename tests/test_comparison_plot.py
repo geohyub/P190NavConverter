@@ -1,4 +1,7 @@
 """Test: Generate Style A vs B comparison plot from test_output/2/ files."""
+if __name__ != "__main__":
+    import pytest
+    pytest.skip("Diagnostic script for local sample files.", allow_module_level=True)
 
 import sys
 sys.path.insert(0, ".")

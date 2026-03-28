@@ -1,5 +1,9 @@
 # -*- coding: utf-8 -*-
 """Compare R records between Style A v2 and Style B."""
+if __name__ != "__main__":
+    import pytest
+    pytest.skip("Diagnostic script for local sample files.", allow_module_level=True)
+
 import sys, os, numpy as np
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 

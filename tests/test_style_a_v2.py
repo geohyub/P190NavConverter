@@ -1,5 +1,9 @@
 # -*- coding: utf-8 -*-
 """Style A v2: Track SOU_X/Y as source + RadExPro geometry values."""
+if __name__ != "__main__":
+    import pytest
+    pytest.skip("Diagnostic script for local sample files.", allow_module_level=True)
+
 import sys, os
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 

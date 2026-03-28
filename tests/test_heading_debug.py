@@ -1,5 +1,9 @@
 # -*- coding: utf-8 -*-
 """Debug heading: compare NPD GPS heading vs RadExPro receiver direction."""
+if __name__ != "__main__":
+    import pytest
+    pytest.skip("Diagnostic script for local sample files.", allow_module_level=True)
+
 import sys, os, math, numpy as np
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 

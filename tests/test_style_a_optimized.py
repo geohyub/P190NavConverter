@@ -1,5 +1,9 @@
 # -*- coding: utf-8 -*-
 """Style A with optimized settings: COS_Sparker as front GPS + estimated offset."""
+if __name__ != "__main__":
+    import pytest
+    pytest.skip("Diagnostic script for local sample files.", allow_module_level=True)
+
 import sys
 import os
 import math

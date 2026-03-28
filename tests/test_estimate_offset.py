@@ -37,6 +37,10 @@ Wait, let me be very explicit:
   source_dx = cos(h) * offset_x + (-sin(h)) * offset_y
   source_dy = sin(h) * offset_x + cos(h) * offset_y
 """
+if __name__ != "__main__":
+    import pytest
+    pytest.skip("Diagnostic script for local sample files.", allow_module_level=True)
+
 import sys
 import os
 import math

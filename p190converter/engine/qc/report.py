@@ -1,6 +1,7 @@
 """QC report generation."""
 
 from .validator import QCResult
+from .comparison import ComparisonResult, format_comparison_report
 from ...models.survey_config import SurveyConfig
 
 
@@ -54,3 +55,8 @@ def generate_qc_report(qc: QCResult, config: SurveyConfig) -> str:
 
     lines.extend(["", "=" * 60])
     return "\n".join(lines)
+
+
+def generate_comparison_report(result: ComparisonResult) -> str:
+    """Backward-compatible wrapper for comparison report export."""
+    return format_comparison_report(result)

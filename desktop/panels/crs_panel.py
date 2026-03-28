@@ -11,6 +11,7 @@ from PySide6.QtWidgets import (
 from geoview_pyside6.constants import Dark, Font, Space, Radius
 
 from desktop.widgets.section_card import SectionCard
+from desktop.services.explanation_service import build_crs_impact_story
 
 # CRS Presets organized by region
 CRS_PRESETS = {
@@ -187,7 +188,91 @@ class CRSPanel(QWidget):
         detail_card.content_layout.addLayout(self._detail_grid)
         layout.addWidget(detail_card)
 
+        preview_card = SectionCard("Coordinate Preview")
+        sample_row = QHBoxLayout()
+        sample_row.setSpacing(Space.SM)
+
+        sample_e_label = QLabel("Sample E:")
+        sample_e_label.setStyleSheet(
+            f"color: {Dark.MUTED}; font-size: {Font.SM}px;"
+            f" background:transparent; border:none;")
+        sample_row.addWidget(sample_e_label)
+
+        self._sample_e = QLineEdit("618538.3")
+        self._sample_e.setFixedWidth(120)
+        self._sample_e.setStyleSheet(f"""
+            QLineEdit {{
+                background: {Dark.DARK};
+                color: {Dark.TEXT};
+                border: 1px solid {Dark.BORDER};
+                border-radius: {Radius.SM}px;
+                padding: 4px 8px;
+                font-size: {Font.SM}px;
+            }}
+        """)
+        sample_row.addWidget(self._sample_e)
+
+        sample_n_label = QLabel("Sample N:")
+        sample_n_label.setStyleSheet(
+            f"color: {Dark.MUTED}; font-size: {Font.SM}px;"
+            f" background:transparent; border:none;")
+        sample_row.addWidget(sample_n_label)
+
+        self._sample_n = QLineEdit("3892818.4")
+        self._sample_n.setFixedWidth(120)
+        self._sample_n.setStyleSheet(f"""
+            QLineEdit {{
+                background: {Dark.DARK};
+                color: {Dark.TEXT};
+                border: 1px solid {Dark.BORDER};
+                border-radius: {Radius.SM}px;
+                padding: 4px 8px;
+                font-size: {Font.SM}px;
+            }}
+        """)
+        sample_row.addWidget(self._sample_n)
+
+        preview_btn = QPushButton("Preview")
+        preview_btn.setFixedHeight(30)
+        preview_btn.setCursor(Qt.PointingHandCursor)
+        preview_btn.setStyleSheet(f"""
+            QPushButton {{
+                background: {Dark.NAVY};
+                color: {Dark.TEXT};
+                border: 1px solid {Dark.BORDER};
+                border-radius: {Radius.SM}px;
+                padding: 0 12px;
+                font-size: {Font.SM}px;
+            }}
+            QPushButton:hover {{ border-color: {Dark.CYAN}; }}
+        """)
+        preview_btn.clicked.connect(self._update_coordinate_preview)
+        sample_row.addWidget(preview_btn)
+        sample_row.addStretch()
+        preview_card.content_layout.addLayout(sample_row)
+
+        self._impact_label = QLabel("")
+        self._impact_label.setWordWrap(True)
+        self._impact_label.setStyleSheet(
+            f"color: {Dark.MUTED}; font-size: {Font.XS}px;"
+            f" background:transparent; border:none;")
+        preview_card.content_layout.addWidget(self._impact_label)
+
+        self._preview_label = QLabel("")
+        self._preview_label.setWordWrap(True)
+        self._preview_label.setStyleSheet(f"""
+            color: {Dark.TEXT};
+            font-size: {Font.SM}px;
+            background: {Dark.DARK};
+            border: 1px solid {Dark.BORDER};
+            border-radius: {Radius.SM}px;
+            padding: 8px;
+        """)
+        preview_card.content_layout.addWidget(self._preview_label)
+        layout.addWidget(preview_card)
+
         layout.addStretch()
+        self._refresh_story()
 
     def _set_region(self, region: str):
         for r, btn in self._region_btns.items():
@@ -226,8 +311,13 @@ class CRSPanel(QWidget):
         self._preset_combo.blockSignals(False)
 
         if presets:
-            self._preset_combo.setCurrentIndex(0)
-            self._on_preset_changed(0)
+            preferred_index = 0
+            if region == "Korea":
+                utm_52_idx = self._preset_combo.findText("WGS 84 / UTM zone 52N")
+                if utm_52_idx >= 0:
+                    preferred_index = utm_52_idx
+            self._preset_combo.setCurrentIndex(preferred_index)
+            self._on_preset_changed(preferred_index)
 
     def _on_preset_changed(self, index: int):
         name = self._preset_combo.currentText()
@@ -238,6 +328,7 @@ class CRSPanel(QWidget):
                 f"Zone: {info['utm_zone']}{info['hemisphere']}")
             self._datum_label.setText(f"Datum: {info['datum_name']}")
             self._update_detail_card(info)
+            self._refresh_story()
             self.crs_changed.emit(self.get_crs_config())
 
     def _update_detail_card(self, info: dict):
@@ -274,6 +365,7 @@ class CRSPanel(QWidget):
             self._epsg_label.setText(f"EPSG: {epsg}")
             self._zone_label.setText("Zone: Custom")
             self._datum_label.setText("Datum: Custom")
+            self._refresh_story()
             self.crs_changed.emit(self.get_crs_config())
 
     def get_crs_config(self):
@@ -316,3 +408,62 @@ class CRSPanel(QWidget):
         # Fallback: set custom
         self._custom_epsg.setText(str(epsg))
         self._apply_custom_epsg()
+
+    def _refresh_story(self):
+        self._impact_label.setText(build_crs_impact_story(self.get_crs_config()))
+        self._update_coordinate_preview()
+
+    def _update_coordinate_preview(self):
+        try:
+            easting = float(self._sample_e.text())
+            northing = float(self._sample_n.text())
+        except ValueError:
+            self._preview_label.setStyleSheet(f"""
+                color: #F59E0B;
+                font-size: {Font.SM}px;
+                background: {Dark.DARK};
+                border: 1px solid {Dark.BORDER};
+                border-radius: {Radius.SM}px;
+                padding: 8px;
+            """)
+            self._preview_label.setText(
+                "Enter numeric sample Easting/Northing values to verify the selected CRS."
+            )
+            return
+
+        try:
+            from p190converter.engine.crs.transformer import CRSTransformer
+            from p190converter.engine.crs.dms_formatter import (
+                format_latitude,
+                format_longitude,
+            )
+
+            transformer = CRSTransformer(self.get_crs_config())
+            lat, lon = transformer.utm_to_latlon(easting, northing)
+            self._preview_label.setStyleSheet(f"""
+                color: {Dark.TEXT};
+                font-size: {Font.SM}px;
+                background: {Dark.DARK};
+                border: 1px solid {Dark.BORDER};
+                border-radius: {Radius.SM}px;
+                padding: 8px;
+            """)
+            self._preview_label.setText(
+                "\n".join(
+                    [
+                        f"Projected: E {easting:,.1f} m  |  N {northing:,.1f} m",
+                        f"Decimal degrees: {lat:.8f}, {lon:.8f}",
+                        f"P190 DMS fields: {format_latitude(lat)}  |  {format_longitude(lon)}",
+                    ]
+                )
+            )
+        except Exception as exc:
+            self._preview_label.setStyleSheet(f"""
+                color: #F59E0B;
+                font-size: {Font.SM}px;
+                background: {Dark.DARK};
+                border: 1px solid {Dark.BORDER};
+                border-radius: {Radius.SM}px;
+                padding: 8px;
+            """)
+            self._preview_label.setText(f"Preview failed: {exc}")

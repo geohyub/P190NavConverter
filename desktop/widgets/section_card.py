@@ -13,6 +13,7 @@ class SectionCard(QFrame):
 
     def __init__(self, title: str = "", parent=None):
         super().__init__(parent)
+        self._title_label: QLabel | None = None
 
         self.setStyleSheet(f"""
             SectionCard {{
@@ -28,16 +29,29 @@ class SectionCard(QFrame):
         self._layout.setSpacing(Space.SM)
 
         if title:
-            title_label = QLabel(title)
-            title_label.setStyleSheet(f"""
+            self._title_label = QLabel(title)
+            self._title_label.setStyleSheet(f"""
                 color: {Dark.TEXT_BRIGHT};
                 font-size: {Font.BASE}px;
                 font-weight: {Font.SEMIBOLD};
                 background: transparent;
                 border: none;
             """)
-            self._layout.addWidget(title_label)
+            self._layout.addWidget(self._title_label)
 
     @property
     def content_layout(self) -> QVBoxLayout:
         return self._layout
+
+    def set_title(self, title: str):
+        if self._title_label is None:
+            self._title_label = QLabel()
+            self._title_label.setStyleSheet(f"""
+                color: {Dark.TEXT_BRIGHT};
+                font-size: {Font.BASE}px;
+                font-weight: {Font.SEMIBOLD};
+                background: transparent;
+                border: none;
+            """)
+            self._layout.insertWidget(0, self._title_label)
+        self._title_label.setText(title)

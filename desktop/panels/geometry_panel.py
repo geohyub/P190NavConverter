@@ -13,6 +13,10 @@ from geoview_pyside6.constants import Dark, Font, Space, Radius
 from desktop.widgets.section_card import SectionCard
 from desktop.widgets.form_field import FormField
 from desktop.widgets.geometry_diagram import GeometryDiagram
+from desktop.services.explanation_service import (
+    INTERP_METHOD_DESCRIPTIONS,
+    build_geometry_story,
+)
 
 
 INTERP_METHODS = ["linear", "catenary", "spline", "feathering"]
@@ -45,6 +49,15 @@ class GeometryPanel(QWidget):
             padding-left: 8px;
         """)
         layout.addWidget(banner)
+
+        self._banner_hint = QLabel(
+            "Offsets are entered in vessel coordinates and are used to derive the source-relative receiver geometry written to the export."
+        )
+        self._banner_hint.setWordWrap(True)
+        self._banner_hint.setStyleSheet(
+            f"color: {Dark.MUTED}; font-size: {Font.XS}px;"
+            f" background:transparent; border:none;")
+        layout.addWidget(self._banner_hint)
 
         # Diagram (expanded for better visibility)
         self._diagram = GeometryDiagram()
@@ -126,7 +139,36 @@ class GeometryPanel(QWidget):
         self._alpha_field.setVisible(False)
         interp_card.content_layout.addWidget(self._alpha_field)
 
+        self._method_hint = QLabel("")
+        self._method_hint.setWordWrap(True)
+        self._method_hint.setStyleSheet(
+            f"color: {Dark.MUTED}; font-size: {Font.XS}px;"
+            f" background:transparent; border:none;")
+        interp_card.content_layout.addWidget(self._method_hint)
+
+        self._feathering_hint = QLabel(
+            "Feathering requires Head/Tail GPS and uses alpha to decide how strongly current-driven bend grows toward the tail."
+        )
+        self._feathering_hint.setWordWrap(True)
+        self._feathering_hint.setStyleSheet(
+            f"color: #F59E0B; font-size: {Font.XS}px;"
+            f" background:transparent; border:none;")
+        self._feathering_hint.setVisible(False)
+        interp_card.content_layout.addWidget(self._feathering_hint)
+
         form.addWidget(interp_card)
+
+        self._meaning_card = SectionCard("Derived Meaning")
+        self._meaning_label = QLabel("")
+        self._meaning_label.setWordWrap(True)
+        self._meaning_label.setStyleSheet(f"""
+            color: {Dark.TEXT};
+            font-size: {Font.SM}px;
+            background: transparent;
+            border: none;
+        """)
+        self._meaning_card.content_layout.addWidget(self._meaning_label)
+        form.addWidget(self._meaning_card)
 
         # Spread summary
         self._spread_label = QLabel("")
@@ -144,6 +186,7 @@ class GeometryPanel(QWidget):
     def _on_interp_changed(self, id_: int):
         method = INTERP_METHODS[id_]
         self._alpha_field.setVisible(method == "feathering")
+        self._feathering_hint.setVisible(method == "feathering")
         self._update_interp_style()
         self._notify_change()
 
@@ -184,6 +227,14 @@ class GeometryPanel(QWidget):
         spread = n_ch * interval
         self._spread_label.setText(
             f"Cable spread: {n_ch} ch x {interval} m = {spread:.1f} m")
+        current_method = self.get_geometry().interp_method.lower()
+        self._method_hint.setText(
+            INTERP_METHOD_DESCRIPTIONS.get(
+                current_method,
+                INTERP_METHOD_DESCRIPTIONS["linear"],
+            )
+        )
+        self._meaning_label.setText(build_geometry_story(self.get_geometry()))
 
     def get_geometry(self):
         from p190converter.models.survey_config import MarineGeometry

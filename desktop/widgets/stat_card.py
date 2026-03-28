@@ -22,6 +22,7 @@ class StatCard(QFrame):
         parent=None,
     ):
         super().__init__(parent)
+        self._desc_label = None
 
         accent = ACCENTS[accent_index % len(ACCENTS)]
 
@@ -52,15 +53,15 @@ class StatCard(QFrame):
         """)
         layout.addWidget(self._value_label)
 
-        desc = QLabel(label)
-        desc.setAlignment(Qt.AlignLeft)
-        desc.setStyleSheet(f"""
+        self._desc_label = QLabel(label)
+        self._desc_label.setAlignment(Qt.AlignLeft)
+        self._desc_label.setStyleSheet(f"""
             color: {Dark.MUTED};
             font-size: {Font.XS}px;
             background: transparent;
             border: none;
         """)
-        layout.addWidget(desc)
+        layout.addWidget(self._desc_label)
 
     def set_value(self, text: str):
         self._value_label.setText(text)
@@ -72,3 +73,7 @@ class StatCard(QFrame):
             background: transparent;
             border: none;
         """)
+
+    def set_label(self, text: str):
+        if self._desc_label is not None:
+            self._desc_label.setText(text)

@@ -15,6 +15,38 @@ import numpy as np
 import pandas as pd
 
 
+ASSESSMENT_BANDS = (
+    (
+        "EXCELLENT",
+        3.0,
+        "Source positions align very closely. Current source basis and offsets look stable.",
+    ),
+    (
+        "GOOD",
+        5.0,
+        "Difference is small for most delivery/QC uses. Review only if a tighter reference match is required.",
+    ),
+    (
+        "ACCEPTABLE",
+        10.0,
+        "Comparison is usable, but the source basis, CRS, or offset setup should be reviewed before delivery.",
+    ),
+    (
+        "POOR",
+        float("inf"),
+        "Differences are large. Check source basis, GPS selection, CRS, and geometry settings before delivery.",
+    ),
+)
+
+
+def _assessment_from_mean(mean_dist: float) -> tuple[str, str]:
+    """Return comparison grade and explanation from source mean difference."""
+    for grade, limit, note in ASSESSMENT_BANDS:
+        if mean_dist < limit:
+            return grade, note
+    return ASSESSMENT_BANDS[-1][0], ASSESSMENT_BANDS[-1][2]
+
+
 @dataclass
 class ComparisonResult:
     """Result of comparing two P190 files."""
@@ -40,6 +72,87 @@ class ComparisonResult:
     # Position data for plotting {ffid: {"src_a": (x,y), "src_b": (x,y),
     #   "rx_a": [(x,y),...], "rx_b": [(x,y),...], "heading_a": deg, "heading_b": deg}}
     positions: Dict = field(default_factory=dict)
+
+    @property
+    def matched_shots(self) -> int:
+        """Backward-compatible alias used by older UI/tests."""
+        return self.n_common_shots
+
+    @property
+    def source_mean_diff(self) -> float:
+        return self.source_dist_mean
+
+    @property
+    def source_max_diff(self) -> float:
+        return self.source_dist_max
+
+    @property
+    def receiver_mean_diff(self) -> float:
+        return self.rx_dist_mean
+
+    @property
+    def source_diffs(self) -> List[float]:
+        if self.per_shot_df is None or self.per_shot_df.empty:
+            return []
+        if "source_dist" in self.per_shot_df.columns:
+            return self.per_shot_df["source_dist"].tolist()
+        return self.per_shot_df["dist"].tolist()
+
+    @property
+    def grade(self) -> str:
+        return _assessment_from_mean(self.source_dist_mean)[0]
+
+    @property
+    def assessment_note(self) -> str:
+        return _assessment_from_mean(self.source_dist_mean)[1]
+
+    @property
+    def has_receivers(self) -> bool:
+        return self.n_channels > 0 and self.per_channel_df is not None
+
+    def worst_shots(self, count: int = 5) -> pd.DataFrame:
+        """Return the shots with the largest source differences."""
+        if self.per_shot_df is None or self.per_shot_df.empty:
+            return pd.DataFrame(columns=["ffid", "source_dist", "dx", "dy"])
+        dist_col = "source_dist" if "source_dist" in self.per_shot_df.columns else "dist"
+        return (
+            self.per_shot_df.sort_values(dist_col, ascending=False)
+            .head(count)
+            .reset_index(drop=True)
+        )
+
+    @property
+    def worst_ffid(self) -> int | None:
+        """Return the FFID with the largest source difference."""
+        worst = self.worst_shots(1)
+        if worst.empty:
+            return None
+        return int(worst.iloc[0]["ffid"])
+
+    def channel_deltas_for_ffid(self, ffid: int) -> pd.DataFrame:
+        """Return per-channel delta details for a selected shot."""
+        pos = self.positions.get(ffid)
+        if not pos:
+            return pd.DataFrame(columns=["channel", "dx", "dy", "dist"])
+
+        rx_a = pos.get("rx_a", [])
+        rx_b = pos.get("rx_b", [])
+        if not rx_a or not rx_b:
+            return pd.DataFrame(columns=["channel", "dx", "dy", "dist"])
+
+        rows = []
+        for channel, (ra, rb) in enumerate(zip(rx_a, rx_b), start=1):
+            dx = ra[0] - rb[0]
+            dy = ra[1] - rb[1]
+            rows.append(
+                {
+                    "channel": channel,
+                    "dx": dx,
+                    "dy": dy,
+                    "dist": math.hypot(dx, dy),
+                }
+            )
+        return pd.DataFrame(rows)
 
 
 def _parse_p190_records(filepath: Union[str, Path]) -> Tuple[pd.DataFrame, Dict]:
@@ -120,6 +233,12 @@ def _parse_p190_records(filepath: Union[str, Path]) -> Tuple[pd.DataFrame, Dict]
     return s_df, rx_dict
 
 
+def _parse_s_records(filepath: Union[str, Path]) -> pd.DataFrame:
+    """Backward-compatible helper that returns only parsed S records."""
+    s_df, _ = _parse_p190_records(filepath)
+    return s_df
+
+
 def _compute_spread_direction(src_x, src_y, rx_list):
     """Compute spread direction from source to last receiver (degrees from north)."""
     if not rx_list:
@@ -183,7 +302,28 @@ def compare_p190_files(
     merged["dx"] = merged["easting_a"] - merged["easting_b"]
     merged["dy"] = merged["northing_a"] - merged["northing_b"]
     merged["dist"] = np.sqrt(merged["dx"] ** 2 + merged["dy"] ** 2)
-    per_shot = merged[["ffid", "dx", "dy", "dist"]].copy()
+    per_shot = merged[
+        [
+            "ffid",
+            "easting_a",
+            "northing_a",
+            "easting_b",
+            "northing_b",
+            "dx",
+            "dy",
+            "dist",
+        ]
+    ].copy()
+    per_shot = per_shot.rename(
+        columns={
+            "easting_a": "source_x_a",
+            "northing_a": "source_y_a",
+            "easting_b": "source_x_b",
+            "northing_b": "source_y_b",
+            "dist": "source_dist",
+        }
+    )
+    per_shot["dist"] = per_shot["source_dist"]
 
     # -- Receiver comparison --
     n_channels = 0
@@ -276,7 +416,7 @@ def compare_p190_files(
         source_dist_mean=float(merged["dist"].mean()),
         source_dist_max=float(merged["dist"].max()),
         source_dist_p95=float(np.percentile(merged["dist"], 95)),
-        source_dist_std=float(merged["dist"].std()),
+        source_dist_std=float(merged["dist"].std(ddof=0)),
         per_shot_df=per_shot,
         n_channels=n_channels,
         rx_dist_mean=rx_dist_mean,
@@ -291,54 +431,50 @@ def compare_p190_files(
 
 def format_comparison_report(result: ComparisonResult) -> str:
     """Format comparison result as human-readable text report."""
+    grade, note = _assessment_from_mean(result.source_dist_mean)
     lines = [
         "=" * 60,
-        "  Style A vs Style B Position Comparison",
+        "Style A vs Style B Position Comparison",
         "=" * 60,
-        f"  Common shots matched:  {result.n_common_shots:,}",
+        f"Common shots matched: {result.n_common_shots:,}",
         "",
-        "  Source Position Difference (meters):",
-        f"    Mean:    {result.source_dist_mean:.2f} m",
-        f"    Std:     {result.source_dist_std:.2f} m",
-        f"    P95:     {result.source_dist_p95:.2f} m",
-        f"    Max:     {result.source_dist_max:.2f} m",
+        "Source Position Difference (meters):",
+        f"  Mean: {result.source_dist_mean:.2f} m",
+        f"  Std:  {result.source_dist_std:.2f} m",
+        f"  P95:  {result.source_dist_p95:.2f} m",
+        f"  Max:  {result.source_dist_max:.2f} m",
     ]
 
     # Receiver stats
     if result.n_channels > 0:
         lines.extend([
             "",
-            f"  Receiver Position Difference ({result.n_channels} channels):",
-            f"    Mean:    {result.rx_dist_mean:.2f} m",
-            f"    Max:     {result.rx_dist_max:.2f} m",
+            f"Receiver Position Difference ({result.n_channels} channels):",
+            f"  Mean: {result.rx_dist_mean:.2f} m",
+            f"  Max:  {result.rx_dist_max:.2f} m",
+        ])
+    else:
+        lines.extend([
+            "",
+            "Receiver Position Difference:",
+            "  Not available because one or both files do not contain comparable R records.",
         ])
 
     # Heading / Spread
     if result.heading_diff_mean != 0.0:
         lines.extend([
             "",
-            "  Directional Analysis:",
-            f"    Heading diff (A-B):   {result.heading_diff_mean:.1f} deg",
-            f"    Spread dir A (mean):  {result.spread_dir_a:.1f} deg",
-            f"    Spread dir B (mean):  {result.spread_dir_b:.1f} deg",
-            f"    Feathering angle:     {abs(result.heading_diff_mean):.1f} deg",
+            "Directional Analysis:",
+            f"  Heading diff (A-B):  {result.heading_diff_mean:.1f} deg",
+            f"  Spread dir A (mean): {result.spread_dir_a:.1f} deg",
+            f"  Spread dir B (mean): {result.spread_dir_b:.1f} deg",
+            f"  Feathering angle:    {abs(result.heading_diff_mean):.1f} deg",
         ])
 
-    lines.append("")
-
-    # Assessment
-    mean = result.source_dist_mean
-    if mean < 3.0:
-        grade = "EXCELLENT - GPS 보간 정확도 우수"
-    elif mean < 5.0:
-        grade = "GOOD - 실무적으로 충분한 정확도"
-    elif mean < 10.0:
-        grade = "ACCEPTABLE - 소스 오프셋 확인 필요"
-    else:
-        grade = "POOR - GPS 보간 또는 설정 점검 필요"
-
     lines.extend([
-        f"  Assessment: {grade}",
+        "",
+        f"Assessment: {grade}",
+        note,
         "=" * 60,
     ])
 

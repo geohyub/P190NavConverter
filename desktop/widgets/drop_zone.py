@@ -109,6 +109,14 @@ class FileDropZone(QFrame):
 
         self._show_empty()
 
+    def set_label_text(self, text: str):
+        self._label_text = text
+        if not self._file_path:
+            self._empty_label.setText(text)
+
+    def set_browse_text(self, text: str):
+        self._browse_btn.setText(text)
+
     def _show_empty(self):
         self._empty_label.show()
         self._browse_btn.show()

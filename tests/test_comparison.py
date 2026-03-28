@@ -5,6 +5,10 @@ Track 파일의 SOU_X/Y는 RadExPro가 기록한 실제 소스 위치.
 Style A P190의 소스 위치는 GPS 보간 + offset 회전으로 계산한 값.
 이 둘의 차이가 Style A 보간의 정확도를 나타냄.
 """
+if __name__ != "__main__":
+    import pytest
+    pytest.skip("Diagnostic script for local sample files.", allow_module_level=True)
+
 import sys
 import os
 
