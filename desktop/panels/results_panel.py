@@ -64,10 +64,10 @@ class ResultsPanel(QWidget):
         # Stats
         stats_col = QVBoxLayout()
         stats_col.setSpacing(Space.SM)
-        self._stat_file = StatCard("Output File", "--", 0)
-        self._stat_size = StatCard("File Size", "--", 1)
-        self._stat_lines = StatCard("Total Lines", "--", 2)
-        self._stat_time = StatCard("Elapsed", "--", 3)
+        self._stat_file = StatCard("\ucd9c\ub825 \ud30c\uc77c", "--", 0)
+        self._stat_size = StatCard("\ud30c\uc77c \ud06c\uae30", "--", 1)
+        self._stat_lines = StatCard("\uc804\uccb4 \ub77c\uc778", "--", 2)
+        self._stat_time = StatCard("\uc18c\uc694 \uc2dc\uac04", "--", 3)
         stats_row = QHBoxLayout()
         for s in (self._stat_file, self._stat_size,
                   self._stat_lines, self._stat_time):
@@ -78,17 +78,17 @@ class ResultsPanel(QWidget):
         layout.addLayout(top_row)
 
         # QC Details
-        qc_card = SectionCard("QC Validation")
+        qc_card = SectionCard("QC \uac80\uc99d")
         check_wrap = QVBoxLayout()
         check_wrap.setSpacing(4)
         self._check_rows = {}
         for key, label in (
-            ("line_length", "80-column line length"),
-            ("record_types", "Record type validity"),
-            ("h_records", "H header records present"),
-            ("s_records", "S source records present"),
-            ("r_records", "R receiver records present"),
-            ("consistency", "Per-shot R record consistency"),
+            ("line_length", "80\uce7c\ub7fc \ub77c\uc778 \uae38\uc774"),
+            ("record_types", "\ub808\ucf54\ub4dc \ud0c0\uc785 \uc720\ud6a8\uc131"),
+            ("h_records", "H \ud5e4\ub354 \ub808\ucf54\ub4dc"),
+            ("s_records", "S \uc18c\uc2a4 \ub808\ucf54\ub4dc"),
+            ("r_records", "R \uc218\uc2e0\uae30 \ub808\ucf54\ub4dc"),
+            ("consistency", "Shot\ubcc4 R \ub808\ucf54\ub4dc \uc77c\uad00\uc131"),
         ):
             row = QHBoxLayout()
             row.setSpacing(Space.SM)
@@ -129,7 +129,7 @@ class ResultsPanel(QWidget):
         qc_card.content_layout.addWidget(self._qc_text)
         layout.addWidget(qc_card)
 
-        export_card = SectionCard("Export Meaning")
+        export_card = SectionCard("\ubcc0\ud658 \uc694\uc57d")
         self._export_text = QTextEdit()
         self._export_text.setReadOnly(True)
         self._export_text.setMaximumHeight(190)
@@ -146,7 +146,7 @@ class ResultsPanel(QWidget):
         export_card.content_layout.addWidget(self._export_text)
         layout.addWidget(export_card)
 
-        package_card = SectionCard("Output Package Files")
+        package_card = SectionCard("\ucd9c\ub825 \ud328\ud0a4\uc9c0 \ud30c\uc77c")
         self._package_text = QTextEdit()
         self._package_text.setReadOnly(True)
         self._package_text.setMaximumHeight(170)
@@ -164,7 +164,7 @@ class ResultsPanel(QWidget):
         package_card.content_layout.addWidget(self._package_text)
         layout.addWidget(package_card)
 
-        preview_card = SectionCard("Artifact Preview")
+        preview_card = SectionCard("\uc0b0\ucd9c\ubb3c \ubbf8\ub9ac\ubcf4\uae30")
         self._artifact_summary = QLabel(
             "Package coverage will appear here once a conversion finishes."
         )
@@ -226,7 +226,7 @@ class ResultsPanel(QWidget):
 
         # Output path + actions
         path_card = SectionCard("Output")
-        self._path_label = QLabel("No output yet")
+        self._path_label = QLabel("\ucd9c\ub825 \uc5c6\uc74c")
         self._path_label.setStyleSheet(
             f"color: {Dark.MUTED}; font-size: {Font.SM}px;"
             f" background:transparent; border:none;")
@@ -236,27 +236,27 @@ class ResultsPanel(QWidget):
         btn_row = QHBoxLayout()
         btn_row.setSpacing(Space.SM)
 
-        self._open_folder_btn = QPushButton("Open Folder")
+        self._open_folder_btn = QPushButton("\ud3f4\ub354 \uc5f4\uae30")
         self._open_folder_btn.clicked.connect(self._open_folder)
         btn_row.addWidget(self._open_folder_btn)
 
-        self._open_report_btn = QPushButton("View Report")
+        self._open_report_btn = QPushButton("\ub9ac\ud3ec\ud2b8 \ubcf4\uae30")
         self._open_report_btn.clicked.connect(self._open_report)
         btn_row.addWidget(self._open_report_btn)
 
-        self._export_plot_btn = QPushButton("Export Track Plot")
+        self._export_plot_btn = QPushButton("Track Plot \ub0b4\ubcf4\ub0b4\uae30")
         self._export_plot_btn.clicked.connect(self._export_track_plot)
         btn_row.addWidget(self._export_plot_btn)
 
-        self._open_plot_btn = QPushButton("View Plot")
+        self._open_plot_btn = QPushButton("Plot \ubcf4\uae30")
         self._open_plot_btn.clicked.connect(self._open_plot)
         btn_row.addWidget(self._open_plot_btn)
 
-        self._open_artifact_btn = QPushButton("Open Selected")
+        self._open_artifact_btn = QPushButton("\uc120\ud0dd \ud30c\uc77c \uc5f4\uae30")
         self._open_artifact_btn.clicked.connect(self._open_selected_artifact)
         btn_row.addWidget(self._open_artifact_btn)
 
-        self._compare_recent_btn = QPushButton("Compare A/B")
+        self._compare_recent_btn = QPushButton("A/B \ube44\uad50")
         self._compare_recent_btn.clicked.connect(self.request_compare.emit)
         btn_row.addWidget(self._compare_recent_btn)
         btn_row.addStretch()

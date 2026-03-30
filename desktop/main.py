@@ -111,37 +111,37 @@ class P190App(GeoViewApp):
         """Register 10 panels: 5 pre-conversion + 5 post-conversion."""
         # -- Pre-conversion (workflow order) --
         self._input = InputPanel(self.controller)
-        self.add_panel("input", "I", "Input", self._input)
+        self.add_panel("input", "I", "\uc785\ub825", self._input)
 
         self._header = HeaderPanel()
-        self.add_panel("header", "H", "Header", self._header)
+        self.add_panel("header", "H", "\ud5e4\ub354", self._header)
 
         self._crs = CRSPanel(self.controller)
-        self.add_panel("crs", "C", "CRS", self._crs)
+        self.add_panel("crs", "C", "\uc88c\ud45c\uacc4", self._crs)
 
         self._geometry = GeometryPanel(self.controller)
         self.add_panel("geometry", "G", "Geometry", self._geometry)
 
         self._preview = PreviewPanel()
-        self.add_panel("preview", "P", "Preview", self._preview)
+        self.add_panel("preview", "P", "\ubbf8\ub9ac\ubcf4\uae30", self._preview)
 
-        self.add_sidebar_separator("Output")
+        self.add_sidebar_separator("\ucd9c\ub825")
 
         # -- Post-conversion --
         self._log = LogPanel()
-        self.add_panel("log", "L", "Log", self._log)
+        self.add_panel("log", "L", "\ub85c\uadf8", self._log)
 
         self._results = ResultsPanel()
-        self.add_panel("results", "R", "Results", self._results)
+        self.add_panel("results", "R", "\uacb0\uacfc", self._results)
 
         self._feathering = FeatheringPanel()
         self.add_panel("feathering", "F", "Feathering", self._feathering)
 
         self._comparison = ComparisonPanel(self.controller)
-        self.add_panel("comparison", "D", "Compare", self._comparison)
+        self.add_panel("comparison", "D", "\ube44\uad50", self._comparison)
 
         self._help = HelpPanel()
-        self.add_panel("help", "?", "Help", self._help)
+        self.add_panel("help", "?", "\ub3c4\uc6c0\ub9d0", self._help)
 
     # ------------------------------------------------------------------ #
     #  Navigation
@@ -179,7 +179,7 @@ class P190App(GeoViewApp):
         # Block navigation to disabled panels
         if panel_id in STYLE_A_ONLY and self._current_style != "A":
             self.controller.show_toast(
-                "Style A (NPD + Geometry) only", "warning")
+                "Style A (NPD + Geometry) \uc804\uc6a9\uc785\ub2c8\ub2e4", "warning")
             return
         self.sidebar.set_active_panel(panel_id)
 
@@ -199,7 +199,7 @@ class P190App(GeoViewApp):
                 self._switch_to("input")
                 break
 
-        self._log.append("info", f"Mode changed to Style {style}")
+        self._log.append("info", f"\ubcc0\ud658 \ubc29\uc2dd: Style {style}")
 
     def _toggle_language(self):
         self._language.toggle()
@@ -377,7 +377,7 @@ class P190App(GeoViewApp):
     def start_conversion(self):
         """Gather config from panels and start conversion."""
         if self._converting:
-            self.controller.show_toast("Conversion in progress", "warning")
+            self.controller.show_toast("\ubcc0\ud658 \uc9c4\ud589\uc911", "warning")
             return
 
         # Gather config
@@ -391,20 +391,20 @@ class P190App(GeoViewApp):
         # Validate
         if style == "B" and not input_vals.get("input_file"):
             self.controller.show_toast(
-                "No RadExPro file selected", "error")
+                "RadExPro \ud30c\uc77c\uc744 \uc120\ud0dd\ud558\uc138\uc694", "error")
             self._switch_to("input")
             return
         if style == "A":
             if not input_vals.get("npd_file"):
-                self.controller.show_toast("No NPD file selected", "error")
+                self.controller.show_toast("NPD \ud30c\uc77c\uc744 \uc120\ud0dd\ud558\uc138\uc694", "error")
                 self._switch_to("input")
                 return
             if not input_vals.get("track_file"):
-                self.controller.show_toast("No Track file selected", "error")
+                self.controller.show_toast("Track \ud30c\uc77c\uc744 \uc120\ud0dd\ud558\uc138\uc694", "error")
                 self._switch_to("input")
                 return
         if not input_vals.get("line_name"):
-            self.controller.show_toast("Line name required", "error")
+            self.controller.show_toast("\ub77c\uc778\uba85\uc744 \uc785\ub825\ud558\uc138\uc694", "error")
             return
 
         # Build SurveyConfig
@@ -494,7 +494,7 @@ class P190App(GeoViewApp):
         self.top_bar.set_title("P190 NavConverter")
         self._log.hide_step_indicator()
         self.controller.show_toast(
-            f"Conversion complete ({elapsed:.1f}s)", "success")
+            f"\ubcc0\ud658 \uc644\ub8cc ({elapsed:.1f}\ucd08)", "success")
 
         # Update results panel
         input_vals = self._input.get_config_values()
@@ -574,7 +574,7 @@ class P190App(GeoViewApp):
         self._elapsed_timer.stop()
         self.top_bar.set_title("P190 NavConverter")
         self._log.hide_step_indicator()
-        self.controller.show_toast(f"Conversion failed: {error}", "error")
+        self.controller.show_toast(f"\ubcc0\ud658 \uc2e4\ud328: {error}", "error")
 
     def _start_feathering_worker(self, output_path: str, input_vals: dict):
         """Launch feathering analysis in a background thread."""
@@ -631,11 +631,11 @@ class P190App(GeoViewApp):
         output_dir = input_vals.get("output_dir", "")
 
         if not batch_files:
-            self.controller.show_toast("No batch files selected", "error")
+            self.controller.show_toast("\uc77c\uad04 \ucc98\ub9ac\ud560 \ud30c\uc77c\uc774 \uc5c6\uc2b5\ub2c8\ub2e4", "error")
             return
         if not output_dir:
             self.controller.show_toast(
-                "Output directory required for batch", "error")
+                "\ucd9c\ub825 \uacbd\ub85c\ub97c \uc9c0\uc815\ud558\uc138\uc694", "error")
             return
 
         self._switch_to("log")
@@ -820,15 +820,15 @@ class P190App(GeoViewApp):
         if panel_id == "input":
             self.top_bar.set_title("P190 NavConverter")
             self.top_bar.add_action_button(
-                "Convert", self.start_conversion, primary=True)
+                "\ubcc0\ud658", self.start_conversion, primary=True)
 
         elif panel_id in ("header", "crs", "geometry", "preview"):
             self.top_bar.add_action_button(
-                "Convert", self.start_conversion, primary=True)
+                "\ubcc0\ud658", self.start_conversion, primary=True)
 
         elif panel_id == "results":
             self.top_bar.add_action_button(
-                "New Conversion",
+                "\uc0c8 \ubcc0\ud658",
                 lambda: self._switch_to("input"))
 
     # ------------------------------------------------------------------ #

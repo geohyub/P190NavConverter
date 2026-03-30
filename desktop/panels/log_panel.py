@@ -63,11 +63,11 @@ class LogPanel(QWidget):
         btn_row = QHBoxLayout()
         btn_row.addStretch()
 
-        clear_btn = QPushButton("Clear")
+        clear_btn = QPushButton("\uc9c0\uc6b0\uae30")
         clear_btn.clicked.connect(self.clear)
         btn_row.addWidget(clear_btn)
 
-        export_btn = QPushButton("Export")
+        export_btn = QPushButton("\ub0b4\ubcf4\ub0b4\uae30")
         export_btn.clicked.connect(self._export)
         btn_row.addWidget(export_btn)
 
@@ -127,7 +127,7 @@ class LogPanel(QWidget):
 
     def _export(self):
         path, _ = QFileDialog.getSaveFileName(
-            self, "Export Log", "conversion_log.txt",
+            self, "\ub85c\uadf8 \ub0b4\ubcf4\ub0b4\uae30", "conversion_log.txt",
             "Text (*.txt)")
         if path:
             with open(path, "w", encoding="utf-8") as f:

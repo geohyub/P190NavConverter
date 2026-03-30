@@ -38,7 +38,7 @@ class GeometryPanel(QWidget):
         layout.setSpacing(Space.MD)
 
         # Style A banner
-        banner = QLabel("  Style A Only -- Marine Geometry Configuration")
+        banner = QLabel("  Style A \uc804\uc6a9 -- \ud574\uc591 Geometry \uc124\uc815")
         banner.setFixedHeight(32)
         banner.setStyleSheet(f"""
             background: rgba(6,182,212,0.1);
@@ -74,7 +74,7 @@ class GeometryPanel(QWidget):
         form.setSpacing(Space.SM)
 
         # Source Offset
-        src_card = SectionCard("Source Offset")
+        src_card = SectionCard("\uc74c\uc6d0 Offset")
         self._src_dx = FormField("Cross-track dx", "0.0", label_width=120)
         self._src_dy = FormField("Along-track dy", "0.0", label_width=120)
         self._src_dx.value = "0.0"
@@ -86,7 +86,7 @@ class GeometryPanel(QWidget):
         form.addWidget(src_card)
 
         # RX1 Offset
-        rx1_card = SectionCard("First Receiver (RX1) Offset")
+        rx1_card = SectionCard("\uccab \ubc88\uc9f8 \uc218\uc2e0\uae30 (RX1) Offset")
         self._rx1_dx = FormField("Cross-track dx", "0.0", label_width=120)
         self._rx1_dy = FormField("Along-track dy", "0.0", label_width=120)
         self._rx1_dx.value = "0.0"
@@ -98,10 +98,10 @@ class GeometryPanel(QWidget):
         form.addWidget(rx1_card)
 
         # Receiver Array
-        arr_card = SectionCard("Receiver Array")
-        self._n_ch = FormField("Channels", "48", label_width=120)
-        self._rx_interval = FormField("Interval (m)", "3.125", label_width=120)
-        self._cable_depth = FormField("Cable Depth (m)", "2.0", label_width=120)
+        arr_card = SectionCard("\uc218\uc2e0 \ubc30\uc5f4")
+        self._n_ch = FormField("\ucc44\ub110 \uc218", "48", label_width=120)
+        self._rx_interval = FormField("\uac04\uaca9 (m)", "3.125", label_width=120)
+        self._cable_depth = FormField("\ucf00\uc774\ube14 \uc218\uc2ec (m)", "2.0", label_width=120)
         self._n_ch.value = "48"
         self._rx_interval.value = "3.125"
         self._cable_depth.value = "2.0"
@@ -113,7 +113,7 @@ class GeometryPanel(QWidget):
         form.addWidget(arr_card)
 
         # Interpolation Method
-        interp_card = SectionCard("Interpolation Method")
+        interp_card = SectionCard("\ubcf4\uac04\ubc95")
         btn_row = QHBoxLayout()
         btn_row.setSpacing(Space.SM)
         self._interp_group = QButtonGroup(self)
@@ -158,7 +158,7 @@ class GeometryPanel(QWidget):
 
         form.addWidget(interp_card)
 
-        self._meaning_card = SectionCard("Derived Meaning")
+        self._meaning_card = SectionCard("Geometry \uc694\uc57d")
         self._meaning_label = QLabel("")
         self._meaning_label.setWordWrap(True)
         self._meaning_label.setStyleSheet(f"""
@@ -226,7 +226,7 @@ class GeometryPanel(QWidget):
 
         spread = n_ch * interval
         self._spread_label.setText(
-            f"Cable spread: {n_ch} ch x {interval} m = {spread:.1f} m")
+            f"\ucf00\uc774\ube14 \uc804\uac1c: {n_ch} ch x {interval} m = {spread:.1f} m")
         current_method = self.get_geometry().interp_method.lower()
         self._method_hint.setText(
             INTERP_METHOD_DESCRIPTIONS.get(

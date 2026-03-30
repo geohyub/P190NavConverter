@@ -120,12 +120,12 @@ class PreviewPanel(QWidget):
 
         # Options row
         opts = QHBoxLayout()
-        self._rx_check = QCheckBox("Show Receivers")
+        self._rx_check = QCheckBox("\uc218\uc2e0\uae30 \ud45c\uc2dc")
         self._rx_check.setChecked(True)
         self._rx_check.stateChanged.connect(self._toggle_receivers)
         opts.addWidget(self._rx_check)
 
-        self._lbl_check = QCheckBox("Show Labels")
+        self._lbl_check = QCheckBox("FFID \ub77c\ubca8")
         self._lbl_check.setChecked(False)
         self._lbl_check.stateChanged.connect(self._toggle_labels)
         opts.addWidget(self._lbl_check)
@@ -177,11 +177,11 @@ class PreviewPanel(QWidget):
                       transform=self._ax.transAxes,
                       ha="center", va="center",
                       color="#334155", fontsize=48)
-        self._ax.text(0.5, 0.42, "Load NPD / Track file to preview",
+        self._ax.text(0.5, 0.42, "NPD / Track \ud30c\uc77c\uc744 \ub85c\ub4dc\ud558\uba74 \ubbf8\ub9ac\ubcf4\uae30\uac00 \ud45c\uc2dc\ub429\ub2c8\ub2e4",
                       transform=self._ax.transAxes,
                       ha="center", va="center",
                       color="#475569", fontsize=12)
-        self._ax.text(0.5, 0.35, "Source positions and receiver geometry will be displayed here",
+        self._ax.text(0.5, 0.35, "\uc18c\uc2a4 \uc704\uce58\uc640 \uc218\uc2e0\uae30 Geometry\uac00 \ud45c\uc2dc\ub429\ub2c8\ub2e4",
                       transform=self._ax.transAxes,
                       ha="center", va="center",
                       color="#334155", fontsize=9)

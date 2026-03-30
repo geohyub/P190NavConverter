@@ -15,7 +15,7 @@ from desktop.services.explanation_service import build_crs_impact_story
 
 # CRS Presets organized by region
 CRS_PRESETS = {
-    "Korea": [
+    "\ud55c\uad6d": [
         ("Korea 2000 / Unified CS", 5186, 52, "N", "WGS-84"),
         ("Korea 2000 / East Belt", 5187, 52, "N", "WGS-84"),
         ("Korea 2000 / West Belt", 5185, 51, "N", "WGS-84"),
@@ -39,7 +39,7 @@ CRS_PRESETS = {
         (f"WGS 84 / UTM zone {z}S", 32700 + z, z, "S", "WGS-84")
         for z in range(1, 61)
     ],
-    "Custom": [],
+    "\uc9c1\uc811 \uc785\ub825": [],
 }
 
 
@@ -54,7 +54,7 @@ class CRSPanel(QWidget):
         self._controller = controller
         self._presets = {}
         self._build_ui()
-        self._set_region("Korea")
+        self._set_region("\ud55c\uad6d")
 
     def _build_ui(self):
         layout = QVBoxLayout(self)
@@ -62,12 +62,12 @@ class CRSPanel(QWidget):
         layout.setSpacing(Space.MD)
 
         # Region selector
-        region_card = SectionCard("Region")
+        region_card = SectionCard("\uc9c0\uc5ed")
         region_row = QHBoxLayout()
         region_row.setSpacing(Space.SM)
 
         self._region_btns = {}
-        for region in ("Korea", "Asia-Pacific", "UTM Global", "Custom"):
+        for region in ("\ud55c\uad6d", "Asia-Pacific", "UTM Global", "\uc9c1\uc811 \uc785\ub825"):
             btn = QPushButton(region)
             btn.setCheckable(True)
             btn.setFixedHeight(32)
@@ -81,7 +81,7 @@ class CRSPanel(QWidget):
         layout.addWidget(region_card)
 
         # Preset dropdown
-        preset_card = SectionCard("Coordinate Reference System")
+        preset_card = SectionCard("\uc88c\ud45c\uacc4 \uc120\ud0dd")
         self._preset_combo = QComboBox()
         self._preset_combo.setStyleSheet(f"""
             QComboBox {{
@@ -126,7 +126,7 @@ class CRSPanel(QWidget):
         # Custom EPSG input
         custom_row = QHBoxLayout()
         custom_row.setSpacing(Space.SM)
-        custom_row.addWidget(QLabel("Custom EPSG:"))
+        custom_row.addWidget(QLabel("EPSG \uc9c1\uc811 \uc785\ub825:"))
         self._custom_epsg = QLineEdit()
         self._custom_epsg.setPlaceholderText("e.g. 32652")
         self._custom_epsg.setFixedWidth(120)
@@ -144,7 +144,7 @@ class CRSPanel(QWidget):
         custom_row.addWidget(self._custom_epsg)
 
         for lbl in preset_card.findChildren(QLabel):
-            if lbl.text() == "Custom EPSG:":
+            if lbl.text() == "EPSG \uc9c1\uc811 \uc785\ub825:":
                 lbl.setStyleSheet(
                     f"color: {Dark.MUTED}; font-size: {Font.SM}px;"
                     f" background:transparent; border:none;")
@@ -153,17 +153,17 @@ class CRSPanel(QWidget):
         layout.addWidget(preset_card)
 
         # CRS Detail card — fill empty space with useful info
-        detail_card = SectionCard("CRS Details")
+        detail_card = SectionCard("CRS \uc0c1\uc138 \uc815\ubcf4")
         self._detail_grid = QVBoxLayout()
         self._detail_grid.setSpacing(4)
 
         detail_rows = [
-            ("Ellipsoid", "_ell_val", "WGS-84"),
-            ("Semi-major Axis", "_sma_val", "6,378,137.0 m"),
-            ("Flattening (1/f)", "_flat_val", "298.257223563"),
-            ("Projection", "_proj_val", "Transverse Mercator"),
-            ("Central Meridian", "_cm_val", "--"),
-            ("Scale Factor", "_sf_val", "0.9996"),
+            ("\ud0c0\uc6d0\uccb4", "_ell_val", "WGS-84"),
+            ("\uc7a5\ubc18\uacbd", "_sma_val", "6,378,137.0 m"),
+            ("\ud3b8\ud3c9\ub960 (1/f)", "_flat_val", "298.257223563"),
+            ("\ud22c\uc601\ubc95", "_proj_val", "Transverse Mercator"),
+            ("\uc911\uc559 \uc790\uc624\uc120", "_cm_val", "--"),
+            ("\ucd95\ucc99 \uacc4\uc218", "_sf_val", "0.9996"),
             ("False Easting", "_fe_val", "500,000 m"),
             ("False Northing", "_fn_val", "0 m"),
         ]
@@ -188,11 +188,11 @@ class CRSPanel(QWidget):
         detail_card.content_layout.addLayout(self._detail_grid)
         layout.addWidget(detail_card)
 
-        preview_card = SectionCard("Coordinate Preview")
+        preview_card = SectionCard("\uc88c\ud45c \ubbf8\ub9ac\ubcf4\uae30")
         sample_row = QHBoxLayout()
         sample_row.setSpacing(Space.SM)
 
-        sample_e_label = QLabel("Sample E:")
+        sample_e_label = QLabel("\uc608\uc2dc E:")
         sample_e_label.setStyleSheet(
             f"color: {Dark.MUTED}; font-size: {Font.SM}px;"
             f" background:transparent; border:none;")
@@ -212,7 +212,7 @@ class CRSPanel(QWidget):
         """)
         sample_row.addWidget(self._sample_e)
 
-        sample_n_label = QLabel("Sample N:")
+        sample_n_label = QLabel("\uc608\uc2dc N:")
         sample_n_label.setStyleSheet(
             f"color: {Dark.MUTED}; font-size: {Font.SM}px;"
             f" background:transparent; border:none;")
@@ -232,7 +232,7 @@ class CRSPanel(QWidget):
         """)
         sample_row.addWidget(self._sample_n)
 
-        preview_btn = QPushButton("Preview")
+        preview_btn = QPushButton("\ud655\uc778")
         preview_btn.setFixedHeight(30)
         preview_btn.setCursor(Qt.PointingHandCursor)
         preview_btn.setStyleSheet(f"""
@@ -312,7 +312,7 @@ class CRSPanel(QWidget):
 
         if presets:
             preferred_index = 0
-            if region == "Korea":
+            if region == "\ud55c\uad6d":
                 utm_52_idx = self._preset_combo.findText("WGS 84 / UTM zone 52N")
                 if utm_52_idx >= 0:
                     preferred_index = utm_52_idx

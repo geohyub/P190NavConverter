@@ -52,7 +52,7 @@ class InputPanel(QWidget):
         profile_row = QHBoxLayout()
         profile_row.setSpacing(Space.SM)
 
-        profile_lbl = QLabel("Profile")
+        profile_lbl = QLabel("\ud504\ub85c\ud544")
         profile_lbl.setStyleSheet(
             f"color: {Dark.MUTED}; font-size: {Font.SM}px;"
             f" background:transparent; border:none;")
@@ -72,9 +72,9 @@ class InputPanel(QWidget):
         """)
         profile_row.addWidget(self._profile_combo, 1)
 
-        for txt, slot in [("Load", self._load_profile),
-                          ("Save", self._save_profile),
-                          ("Del", self._delete_profile)]:
+        for txt, slot in [("\ubd88\ub7ec\uc624\uae30", self._load_profile),
+                          ("\uc800\uc7a5", self._save_profile),
+                          ("\uc0ad\uc81c", self._delete_profile)]:
             btn = QPushButton(txt)
             btn.setFixedHeight(28)
             btn.setCursor(Qt.PointingHandCursor)
@@ -95,13 +95,13 @@ class InputPanel(QWidget):
         layout.addLayout(profile_row)
 
         # ── Style Selector ──
-        style_card = SectionCard("Conversion Style")
+        style_card = SectionCard("\ubcc0\ud658 \ubc29\uc2dd")
         style_row = QHBoxLayout()
         style_row.setSpacing(Space.SM)
 
         self._style_btns = {}
         for label, key in [("Style A: NPD + Geometry", "A"),
-                           ("Style B: RadExPro Export", "B")]:
+                           ("Style B: RadExPro \ub0b4\ubcf4\ub0b4\uae30", "B")]:
             btn = QPushButton(label)
             btn.setCheckable(True)
             btn.setChecked(key == "B")
@@ -123,7 +123,7 @@ class InputPanel(QWidget):
 
         # Batch mode toggle
         batch_row = QHBoxLayout()
-        self._batch_check = QCheckBox("Batch Mode (multiple files)")
+        self._batch_check = QCheckBox("\uc77c\uad04 \ucc98\ub9ac (\uc5ec\ub7ec \ud30c\uc77c)")
         self._batch_check.setStyleSheet(f"""
             QCheckBox {{ color: {Dark.MUTED}; font-size: {Font.SM}px; }}
         """)
@@ -152,14 +152,14 @@ class InputPanel(QWidget):
         a_layout.setSpacing(Space.SM)
 
         self._npd_drop = FileDropZone(
-            "NPD File (NaviPac navigation)",
+            "NPD \ud30c\uc77c (NaviPac \ud56d\ubc95)",
             "NPD Files (*.NPD *.npd);;All (*)")
         self._npd_drop.file_selected.connect(
             lambda p: self._handle_file_selected("npd", p))
         a_layout.addWidget(self._npd_drop)
 
         self._track_drop = FileDropZone(
-            "Track File (header export)",
+            "Track \ud30c\uc77c (Header Export)",
             "Track Files (*.txt *.tsv *.csv);;All (*)")
         self._track_drop.file_selected.connect(
             lambda p: self._handle_file_selected("track", p))
@@ -168,11 +168,11 @@ class InputPanel(QWidget):
         # GPS source selection
         gps_row = QHBoxLayout()
         gps_row.setSpacing(Space.SM)
-        gps_row.addWidget(QLabel("Front GPS:"))
+        gps_row.addWidget(QLabel("\uc120\uc218 GPS:"))
         self._front_gps = QComboBox()
         self._front_gps.setMinimumWidth(140)
         gps_row.addWidget(self._front_gps)
-        gps_row.addWidget(QLabel("Tail GPS:"))
+        gps_row.addWidget(QLabel("\uc120\ubbf8 GPS:"))
         self._tail_gps = QComboBox()
         self._tail_gps.setMinimumWidth(140)
         gps_row.addWidget(self._tail_gps)
@@ -196,7 +196,7 @@ class InputPanel(QWidget):
 
         basis_row = QHBoxLayout()
         basis_row.setSpacing(Space.SM)
-        basis_lbl = QLabel("Source Basis:")
+        basis_lbl = QLabel("\uc18c\uc2a4 \uae30\uc900:")
         basis_lbl.setStyleSheet(
             f"color: {Dark.MUTED}; font-size: {Font.SM}px;"
             f" background:transparent; border:none;")
@@ -245,18 +245,18 @@ class InputPanel(QWidget):
         layout.addWidget(self._input_stack)
 
         # ── Common fields ──
-        common_card = SectionCard("Output")
-        self._line_name = FormField("Line Name", "e.g. M1406",
+        common_card = SectionCard("\ucd9c\ub825 \uc124\uc815")
+        self._line_name = FormField("\ub77c\uc778\uba85", "e.g. M1406",
                                      label_width=80)
         common_card.content_layout.addWidget(self._line_name)
 
         self._output_dir = FormField(
-            "Output Dir", "", browse=True, label_width=80)
+            "\ucd9c\ub825 \uacbd\ub85c", "", browse=True, label_width=80)
         self._output_dir.set_browse_callback(self._browse_output_dir)
         common_card.content_layout.addWidget(self._output_dir)
 
         self._radex_decimals = FormField(
-            "Coord Dec.", "5", label_width=80)
+            "\uc88c\ud45c \uc18c\uc218\uc810", "5", label_width=80)
         self._radex_decimals.value = "5"
         self._radex_decimals.value_changed.connect(self._refresh_explanation)
         common_card.content_layout.addWidget(self._radex_decimals)
@@ -270,7 +270,7 @@ class InputPanel(QWidget):
 
         layout.addWidget(common_card)
 
-        self._story_card = SectionCard("Current Conversion Story")
+        self._story_card = SectionCard("\ubcc0\ud658 \uc694\uc57d")
         self._story_label = QLabel("")
         self._story_label.setWordWrap(True)
         self._story_label.setStyleSheet(f"""
@@ -285,9 +285,9 @@ class InputPanel(QWidget):
         # ── Summary Stats ──
         stats_row = QHBoxLayout()
         stats_row.setSpacing(Space.SM)
-        self._stat_shots = StatCard("Shots", "--", 0)
-        self._stat_channels = StatCard("Channels", "--", 1)
-        self._stat_ffid = StatCard("FFID Range", "--", 2)
+        self._stat_shots = StatCard("Shot \uc218", "--", 0)
+        self._stat_channels = StatCard("\ucc44\ub110 \uc218", "--", 1)
+        self._stat_ffid = StatCard("FFID \ubc94\uc704", "--", 2)
         stats_row.addWidget(self._stat_shots)
         stats_row.addWidget(self._stat_channels)
         stats_row.addWidget(self._stat_ffid)
@@ -490,7 +490,7 @@ class InputPanel(QWidget):
     def _save_profile(self):
         name = self._profile_combo.currentText().strip()
         if not name:
-            self._controller.show_toast("Enter profile name", "warning")
+            self._controller.show_toast("\ud504\ub85c\ud544 \uc774\ub984\uc744 \uc785\ub825\ud558\uc138\uc694", "warning")
             return
         self._controller.profile_saved.emit(name)
 

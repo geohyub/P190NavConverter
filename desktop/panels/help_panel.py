@@ -13,46 +13,46 @@ from desktop.widgets.section_card import SectionCard
 
 
 HELP_SECTIONS = [
-    ("Style A Workflow (NPD + Geometry)", [
-        "1. Input: Load NPD navigation file + Track file",
-        "2. Select GPS sources (Front/Tail Buoy)",
-        "3. Header: Edit survey metadata H Records",
-        "4. CRS: Select coordinate reference system",
-        "5. Geometry: Configure source/receiver offsets",
-        "6. Preview: Verify track map and shot positions",
-        "7. Click Convert (Ctrl+Enter)",
-        "8. Review results, feathering analysis",
+    ("Style A 워크플로우 (NPD + Geometry)", [
+        "1. Input: NPD 항법 파일 + Track 파일 로드",
+        "2. GPS 소스 선택 (선수/선미 Buoy)",
+        "3. Header: 조사 메타데이터 H Record 편집",
+        "4. CRS: 좌표계 선택",
+        "5. Geometry: 음원/수신기 오프셋 설정",
+        "6. Preview: 트랙 맵과 Shot 위치 확인",
+        "7. Convert 클릭 (Ctrl+Enter)",
+        "8. 결과 확인, Feathering 분석 검토",
     ]),
-    ("Style B Workflow (RadExPro Export)", [
-        "1. Input: Load RadExPro header export TSV",
-        "2. Header: Edit survey metadata H Records",
-        "3. CRS: Select coordinate reference system",
-        "4. Click Convert (Ctrl+Enter)",
-        "5. Review results and QC validation",
+    ("Style B 워크플로우 (RadExPro Export)", [
+        "1. Input: RadExPro Header Export TSV 로드",
+        "2. Header: 조사 메타데이터 H Record 편집",
+        "3. CRS: 좌표계 선택",
+        "4. Convert 클릭 (Ctrl+Enter)",
+        "5. 결과 및 QC 검증 확인",
     ]),
-    ("Keyboard Shortcuts", [
-        "Ctrl+Enter  --  Start conversion",
-        "Escape      --  Go back to Input",
+    ("단축키", [
+        "Ctrl+Enter  --  변환 시작",
+        "Escape      --  입력 화면으로 돌아가기",
     ]),
-    ("P190 Record Format", [
-        "H Record: 80-char header (survey metadata)",
-        "S Record: Source position per shot (FFID, lat/lon, UTM, time)",
-        "R Record: Receiver positions (3 groups per line, 48ch = 16 lines)",
-        "Fixed-width text format, 80 characters per line",
+    ("P190 레코드 형식", [
+        "H Record: 80자 헤더 (조사 메타데이터)",
+        "S Record: Shot당 소스 위치 (FFID, 위경도, UTM, 시각)",
+        "R Record: 수신기 위치 (줄당 3그룹, 48ch = 16줄)",
+        "고정 폭 텍스트, 줄당 80자",
     ]),
-    ("Interpolation Methods", [
-        "Linear: Standard RadExPro-style equal spacing",
-        "Catenary: Physics-based cable shape (deep water)",
-        "Spline: Cubic interpolation through control points",
-        "Feathering: Cross-current displacement model with alpha exponent",
+    ("보간법 안내", [
+        "Linear: RadExPro 표준 등간격 배치",
+        "Catenary: 물리 기반 케이블 현수선 (심해용)",
+        "Spline: 제어점 통과 큐빅 보간",
+        "Feathering: 조류 편향 모델 (alpha 지수)",
     ]),
 ]
 
 
 class HelpPanel(QWidget):
-    """Usage instructions and P190 format guide."""
+    """사용 안내 및 P190 형식 참조."""
 
-    panel_title = "Help"
+    panel_title = "도움말"
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -64,7 +64,7 @@ class HelpPanel(QWidget):
         outer.setSpacing(Space.SM)
 
         # Title
-        title = QLabel("P190 NavConverter Help")
+        title = QLabel("P190 NavConverter 도움말")
         title.setStyleSheet(f"""
             color: {Dark.TEXT_BRIGHT};
             font-size: {Font.MD}px;

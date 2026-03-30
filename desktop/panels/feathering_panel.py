@@ -43,7 +43,7 @@ class FeatheringPanel(QWidget):
         layout.setSpacing(Space.MD)
 
         # Banner
-        banner = QLabel("  Style A Only -- Cable Dynamics Analysis")
+        banner = QLabel("  Style A \uc804\uc6a9 -- \ucf00\uc774\ube14 \ub3d9\uc5ed\ud559 \ubd84\uc11d")
         banner.setFixedHeight(32)
         banner.setStyleSheet(f"""
             background: rgba(6,182,212,0.1);
@@ -58,18 +58,18 @@ class FeatheringPanel(QWidget):
         # Stats row
         stats_row = QHBoxLayout()
         stats_row.setSpacing(Space.SM)
-        self._stat_angle = StatCard("Mean |Angle|", "--", 0)
-        self._stat_current = StatCard("Est. Current", "--", 1)
-        self._stat_correction = StatCard("Mean Correction", "--", 2)
+        self._stat_angle = StatCard("\ud3c9\uade0 |\uac01\ub3c4|", "--", 0)
+        self._stat_current = StatCard("\ucd94\uc815 \uc870\ub958", "--", 1)
+        self._stat_correction = StatCard("\ud3c9\uade0 \ubcf4\uc815\ub7c9", "--", 2)
         for s in (self._stat_angle, self._stat_current, self._stat_correction):
             stats_row.addWidget(s)
         layout.addLayout(stats_row)
 
         # Method description
         self._method_label = QLabel(
-            "Reference: Vessel COG (Head GPS, window=5 shots)  |  "
-            "Feathering = Cable heading (Head->Tail) - Vessel aft direction  |  "
-            "+ Starboard / - Port"
+            "\uae30\uc900: \uc120\uc218 GPS \uae30\ubc18 \uc120\ubc15 COG (window=5 shots)  |  "
+            "Feathering = \ucf00\uc774\ube14 \ubc29\uc704(\uc120\uc218->Tail) - \uc120\ubc15 \ud6c4\ubbf8 \ubc29\ud5a5  |  "
+            "+ \uc6b0\ud604 / - \uc88c\ud604"
         )
         self._method_label.setWordWrap(True)
         self._method_label.setStyleSheet(f"""
@@ -90,7 +90,7 @@ class FeatheringPanel(QWidget):
         layout.addWidget(self._canvas, 1)
 
         # Placeholder
-        self._ax.text(0.5, 0.5, "Run Style A conversion to view",
+        self._ax.text(0.5, 0.5, "Style A \ubcc0\ud658 \uc2e4\ud589 \ud6c4 \ud45c\uc2dc\ub429\ub2c8\ub2e4",
                       transform=self._ax.transAxes,
                       ha="center", va="center", color=MPL_FG, fontsize=13)
         self._canvas.draw()
@@ -98,7 +98,7 @@ class FeatheringPanel(QWidget):
         # Export buttons
         btn_row = QHBoxLayout()
         btn_row.addStretch()
-        export_btn = QPushButton("Export Report")
+        export_btn = QPushButton("\ub9ac\ud3ec\ud2b8 \ub0b4\ubcf4\ub0b4\uae30")
         export_btn.setFixedHeight(28)
         export_btn.setCursor(Qt.PointingHandCursor)
         export_btn.setStyleSheet(f"""
@@ -140,11 +140,11 @@ class FeatheringPanel(QWidget):
         cable_mean = np.nanmean(cable_hd)
 
         self._method_label.setText(
-            f"Reference: Vessel COG from Head GPS (window=5 shots)  |  "
-            f"Mean COG: {cog_mean:.1f} deg  |  "
-            f"Mean Cable Heading: {cable_mean:.1f} deg  |  "
-            f"Feathering = Cable(Head->Tail) - Vessel Aft  |  "
-            f"+ Starboard / - Port"
+            f"\uae30\uc900: \uc120\uc218 GPS \uae30\ubc18 COG (window=5)  |  "
+            f"\ud3c9\uade0 COG: {cog_mean:.1f} deg  |  "
+            f"\ud3c9\uade0 \ucf00\uc774\ube14 \ubc29\uc704: {cable_mean:.1f} deg  |  "
+            f"Feathering = \ucf00\uc774\ube14(\uc120\uc218->Tail) - \uc120\ubc15 \ud6c4\ubbf8  |  "
+            f"+ \uc6b0\ud604 / - \uc88c\ud604"
         )
 
         self._draw_chart(result)

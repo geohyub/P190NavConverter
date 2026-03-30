@@ -10,7 +10,7 @@ from PySide6.QtWidgets import QWidget, QSizePolicy
 
 from geoview_pyside6.constants import Dark
 
-STEP_LABELS = ["Parse", "Transform", "Write", "Validate", "QC"]
+STEP_LABELS = ["\ud30c\uc2f1", "\ubcc0\ud658", "\uc791\uc131", "\uac80\uc99d", "QC"]
 
 STEP_COLORS = {
     "pending": QColor("#4A5568"),

@@ -14,37 +14,37 @@ from desktop.widgets.section_card import SectionCard
 
 # H Record categories and codes
 H_CATEGORIES = {
-    "Survey": [
-        ("H0100", "Survey Area Name"),
-        ("H0200", "Survey Date"),
-        ("H0300", "Client Name"),
-        ("H0400", "Geophysical Contractor"),
-        ("H0500", "Positioning Contractor"),
-        ("H0600", "Position Processing Contractor"),
+    "\uc870\uc0ac \uc815\ubcf4": [
+        ("H0100", "\uc870\uc0ac \uc9c0\uc5ed\uba85"),
+        ("H0200", "\uc870\uc0ac \ub0a0\uc9dc"),
+        ("H0300", "\ud074\ub77c\uc774\uc5b8\ud2b8\uba85"),
+        ("H0400", "\ubb3c\ub9ac\ud0d0\uc0ac \uc5c5\uccb4"),
+        ("H0500", "\uce21\uc704 \uc5c5\uccb4"),
+        ("H0600", "\uce21\uc704 \ucc98\ub9ac \uc5c5\uccb4"),
     ],
-    "Vessel": [
-        ("H0700", "Processing Contractor"),
-        ("H0800", "Vessel Name"),
-        ("H0900", "Vessel ID"),
+    "\uc120\ubc15 \uc815\ubcf4": [
+        ("H0700", "\ucc98\ub9ac \uc5c5\uccb4"),
+        ("H0800", "\uc120\ubc15\uba85"),
+        ("H0900", "\uc120\ubc15 ID"),
     ],
-    "Coordinate System": [
-        ("H1000", "Datum/Spheroid Name"),
-        ("H1100", "Datum/Spheroid Semi-Major Axis"),
-        ("H1200", "Datum/Spheroid Flattening"),
-        ("H1300", "Projection Type"),
-        ("H1400", "Projection Zone"),
-        ("H1500", "Central Meridian"),
-        ("H1600", "Latitude of Origin"),
-        ("H1700", "Scale Factor"),
+    "\uc88c\ud45c\uacc4": [
+        ("H1000", "Datum/Spheroid \uc774\ub984"),
+        ("H1100", "Datum/Spheroid \uc7a5\ubc18\uacbd"),
+        ("H1200", "Datum/Spheroid \ud3b8\ud3c9\ub960"),
+        ("H1300", "\ud22c\uc601\ubc95 \uc885\ub958"),
+        ("H1400", "\ud22c\uc601 Zone"),
+        ("H1500", "\uc911\uc559 \uc790\uc624\uc120"),
+        ("H1600", "\uc6d0\uc810 \uc704\ub3c4"),
+        ("H1700", "\ucd95\ucc99 \uacc4\uc218"),
         ("H1800", "False Easting"),
         ("H1900", "False Northing"),
     ],
-    "Equipment": [
-        ("H2000", "Source Type"),
-        ("H2100", "Source Description"),
-        ("H2200", "Streamer Description"),
-        ("H2300", "No. of Channels"),
-        ("H2400", "Group Interval"),
+    "\uc7a5\ube44 \uc815\ubcf4": [
+        ("H2000", "\uc74c\uc6d0 \uc885\ub958"),
+        ("H2100", "\uc74c\uc6d0 \uc124\uba85"),
+        ("H2200", "\uc2a4\ud2b8\ub9ac\uba38 \uc124\uba85"),
+        ("H2300", "\ucc44\ub110 \uc218"),
+        ("H2400", "\uadf8\ub8f9 \uac04\uaca9"),
         ("H2500", "Near Offset"),
         ("H2600", "Far Offset"),
     ],
@@ -67,7 +67,7 @@ class HeaderPanel(QWidget):
         outer.setSpacing(Space.SM)
 
         # Title
-        title = QLabel("P190 H Record Editor")
+        title = QLabel("P190 H Record \ud3b8\uc9d1\uae30")
         title.setStyleSheet(f"""
             color: {Dark.TEXT_BRIGHT};
             font-size: {Font.MD}px;
