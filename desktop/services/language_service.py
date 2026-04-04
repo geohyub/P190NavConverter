@@ -55,6 +55,7 @@ TRANSLATIONS = {
         "compare.channel_profile_idle": "Receiver delta profile will appear here when the selected shot has comparable R records.",
         "compare.export_report": "Export Report",
         "compare.export_plot": "Export Plot",
+        "compare.export_manifest": "Export Manifest",
     },
     "ko": {
         "sidebar.input": "입력",
@@ -105,6 +106,7 @@ TRANSLATIONS = {
         "compare.channel_profile_idle": "선택 샷에 비교 가능한 R 레코드가 있으면 리시버 차이 프로파일이 표시됩니다.",
         "compare.export_report": "리포트 저장",
         "compare.export_plot": "플롯 저장",
+        "compare.export_manifest": "패키지 요약 저장",
     },
 }
 

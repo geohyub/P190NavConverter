@@ -41,6 +41,7 @@ from desktop.services.output_package_service import (
     read_artifact_preview,
     summarize_artifact_inventory,
 )
+from desktop.services.export_service import export_package_manifest
 
 MPL_BG = "#0a0e17"
 MPL_FG = "#94a3b8"
@@ -443,7 +444,8 @@ class ComparisonPanel(QWidget):
         btn_row.addStretch()
         self._export_report_btn = QPushButton("Export Report")
         self._export_plot_btn = QPushButton("Export Plot")
-        for btn in (self._export_report_btn, self._export_plot_btn):
+        self._export_manifest_btn = QPushButton("Export Manifest")
+        for btn in (self._export_report_btn, self._export_plot_btn, self._export_manifest_btn):
             btn.setFixedHeight(28)
             btn.setCursor(Qt.PointingHandCursor)
             btn.setStyleSheet(f"""
@@ -459,8 +461,10 @@ class ComparisonPanel(QWidget):
         """)
         self._export_report_btn.clicked.connect(self._export_report)
         self._export_plot_btn.clicked.connect(self._export_plot)
+        self._export_manifest_btn.clicked.connect(self._export_manifest)
         btn_row.addWidget(self._export_report_btn)
         btn_row.addWidget(self._export_plot_btn)
+        btn_row.addWidget(self._export_manifest_btn)
         layout.addLayout(btn_row)
         layout.addStretch()
         self._draw_empty_sync_workspace()
@@ -522,6 +526,7 @@ class ComparisonPanel(QWidget):
                 "channel_profile_idle": "Receiver delta profile will appear here when the selected shot has comparable R records.",
                 "export_report": "Export Report",
                 "export_plot": "Export Plot",
+                "export_manifest": "Export Manifest",
             }
             return fallback[key]
         return self._language.text(f"compare.{key}")
@@ -556,6 +561,7 @@ class ComparisonPanel(QWidget):
         self._btn_last.setText(self._t("quick_last"))
         self._export_report_btn.setText(self._t("export_report"))
         self._export_plot_btn.setText(self._t("export_plot"))
+        self._export_manifest_btn.setText(self._t("export_manifest"))
 
         if self._result is not None:
             self._display_result(self._result)
@@ -883,6 +889,37 @@ class ComparisonPanel(QWidget):
 
             zoom_ffid = self._current_ffid()
             generate_comparison_plot(self._result, path, zoom_ffid=zoom_ffid)
+
+    def _export_manifest(self):
+        path_a = self._file_a.value
+        path_b = self._file_b.value
+        if not path_a or not path_b:
+            self._controller.show_toast(
+                "두 P190 파일을 먼저 지정하세요." if self._language and self._language.current_language == "ko" else "Select both P190 files first",
+                "warning",
+            )
+            return
+
+        default_name = "Style_AB_Package_Manifest.xlsx"
+        path, _ = QFileDialog.getSaveFileName(
+            self,
+            "Export Package Manifest",
+            default_name,
+            "Excel (*.xlsx);;CSV (*.csv)",
+        )
+        if not path:
+            return
+
+        saved_path = export_package_manifest(path_a, path_b, path)
+        if self._controller is not None:
+            self._controller.conversion_log.emit(
+                "success",
+                f"Package manifest exported: {saved_path}",
+            )
+            self._controller.show_toast(
+                "패키지 요약을 저장했습니다." if self._language and self._language.current_language == "ko" else "Package manifest exported",
+                "success",
+            )
 
     def _current_ffid(self):
         if not self._ffids:
