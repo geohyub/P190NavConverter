@@ -437,13 +437,13 @@ class ResultsPanel(QWidget):
     def _set_check_row(self, key: str, status: str, detail: str):
         icon, detail_label = self._check_rows[key]
         if status == "pass":
-            color = "#10B981"
+            color = Dark.GREEN
             marker = "+"
         elif status == "fail":
-            color = "#EF4444"
+            color = Dark.RED
             marker = "x"
         else:
-            color = "#F59E0B"
+            color = Dark.ORANGE
             marker = "!"
         icon.setText(marker)
         icon.setStyleSheet(
@@ -562,8 +562,8 @@ class ResultsPanel(QWidget):
             active = key == artifact_key
             item = next((entry for entry in self._artifacts if entry.key == key), None)
             exists = item.exists if item else False
-            border = Dark.CYAN if active else (Dark.BORDER if exists else "#5B6474")
-            background = Dark.NAVY if exists else "#111827"
+            border = Dark.CYAN if active else (Dark.BORDER if exists else Dark.SURFACE)
+            background = Dark.NAVY if exists else Dark.BG_ALT
             foreground = Dark.TEXT if exists else Dark.MUTED
             button.setStyleSheet(f"""
                 QPushButton {{

@@ -16,13 +16,13 @@ from PySide6.QtWidgets import (
 
 from geoview_pyside6.constants import Dark, Font, Space, Radius
 
-# Matplotlib dark theme colors
-MPL_BG = "#0a0e17"
-MPL_FG = "#94a3b8"
-MPL_GRID = "#1e293b"
-MPL_ACCENT = "#06b6d4"
-MPL_SOURCE = "#f59e0b"
-MPL_RECEIVER = "#06b6d4"
+# Matplotlib dark theme colors (aligned with Dark.* palette)
+MPL_BG = Dark.BG
+MPL_FG = "#94a3b8"       # chart text -- slightly lighter than Dark.MUTED
+MPL_GRID = Dark.SLATE
+MPL_ACCENT = Dark.CYAN
+MPL_SOURCE = Dark.ORANGE
+MPL_RECEIVER = Dark.CYAN
 
 
 class PreviewPanel(QWidget):
@@ -176,15 +176,15 @@ class PreviewPanel(QWidget):
         self._ax.text(0.5, 0.55, "\u25CB",
                       transform=self._ax.transAxes,
                       ha="center", va="center",
-                      color="#334155", fontsize=48)
+                      color=Dark.BORDER_H, fontsize=48)
         self._ax.text(0.5, 0.42, "NPD / Track \ud30c\uc77c\uc744 \ub85c\ub4dc\ud558\uba74 \ubbf8\ub9ac\ubcf4\uae30\uac00 \ud45c\uc2dc\ub429\ub2c8\ub2e4",
                       transform=self._ax.transAxes,
                       ha="center", va="center",
-                      color="#475569", fontsize=12)
+                      color=Dark.DIM, fontsize=12)
         self._ax.text(0.5, 0.35, "\uc18c\uc2a4 \uc704\uce58\uc640 \uc218\uc2e0\uae30 Geometry\uac00 \ud45c\uc2dc\ub429\ub2c8\ub2e4",
                       transform=self._ax.transAxes,
                       ha="center", va="center",
-                      color="#334155", fontsize=9)
+                      color=Dark.BORDER_H, fontsize=9)
         self._canvas.draw()
         self._mode_label.setText(
             "Load a RadEx export or Track file to preview the geometry that will drive conversion."

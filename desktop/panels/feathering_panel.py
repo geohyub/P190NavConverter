@@ -19,8 +19,9 @@ from geoview_pyside6.constants import Dark, Font, Space, Radius
 from desktop.widgets.section_card import SectionCard
 from desktop.widgets.stat_card import StatCard
 
-MPL_BG = "#0a0e17"
-MPL_FG = "#94a3b8"
+MPL_BG = Dark.BG
+MPL_FG = "#94a3b8"       # chart text
+MPL_GRID = Dark.SLATE
 
 
 class FeatheringPanel(QWidget):
@@ -167,15 +168,15 @@ class FeatheringPanel(QWidget):
         smooth = np.convolve(angles, kernel, mode="same")
 
         # Raw data: very faint scatter
-        ax.scatter(x, angles, s=0.3, c="#06B6D4", alpha=0.08,
+        ax.scatter(x, angles, s=0.3, c=Dark.CYAN, alpha=0.08,
                    rasterized=True)
 
         # Smooth trend: filled area from zero
-        ax.fill_between(x, smooth, 0, color="#06B6D4", alpha=0.25)
-        ax.plot(x, smooth, color="#06B6D4", linewidth=1.5)
+        ax.fill_between(x, smooth, 0, color=Dark.CYAN, alpha=0.25)
+        ax.plot(x, smooth, color=Dark.CYAN, linewidth=1.5)
 
         # Zero line
-        ax.axhline(0, color="#334155", linewidth=0.8)
+        ax.axhline(0, color=Dark.BORDER_H, linewidth=0.8)
 
         # Y-axis: percentile-based
         p2, p98 = np.nanpercentile(angles, [2, 98])
@@ -189,7 +190,7 @@ class FeatheringPanel(QWidget):
         ax.tick_params(colors=MPL_FG, labelsize=8)
         for spine in ax.spines.values():
             spine.set_visible(False)
-        ax.grid(axis="y", color="#1e293b", linewidth=0.4, alpha=0.5)
+        ax.grid(axis="y", color=MPL_GRID, linewidth=0.4, alpha=0.5)
 
         self._fig.tight_layout()
         self._canvas.draw()

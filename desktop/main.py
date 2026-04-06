@@ -20,12 +20,13 @@ if _P190_ROOT not in sys.path:
 if _SHARED_ROOT not in sys.path:
     sys.path.insert(0, _SHARED_ROOT)
 
-from PySide6.QtWidgets import QMessageBox
 from PySide6.QtCore import QThread, QTimer
 from PySide6.QtGui import QShortcut, QKeySequence
 
 from geoview_pyside6 import GeoViewApp, Category
 from geoview_pyside6.constants import Dark
+from geoview_pyside6.icons import icon
+from geoview_pyside6.help import set_help
 
 from desktop.app_controller import AppController
 from desktop.widgets.toast import ToastManager
@@ -79,7 +80,7 @@ class P190App(GeoViewApp):
             self._language.text("top.language_button"),
             self._toggle_language,
         )
-        self._lang_btn.setToolTip("Toggle Korean / English")
+        set_help(self._lang_btn, "Toggle Korean / English")
         self._language.language_changed.connect(self._on_language_changed)
 
         self.toast_mgr = ToastManager(self.content_stack)
@@ -111,37 +112,37 @@ class P190App(GeoViewApp):
         """Register 10 panels: 5 pre-conversion + 5 post-conversion."""
         # -- Pre-conversion (workflow order) --
         self._input = InputPanel(self.controller)
-        self.add_panel("input", "I", "\uc785\ub825", self._input)
+        self.add_panel("input", icon("upload"), "\uc785\ub825", self._input)
 
         self._header = HeaderPanel()
-        self.add_panel("header", "H", "\ud5e4\ub354", self._header)
+        self.add_panel("header", icon("file-text"), "\ud5e4\ub354", self._header)
 
         self._crs = CRSPanel(self.controller)
-        self.add_panel("crs", "C", "\uc88c\ud45c\uacc4", self._crs)
+        self.add_panel("crs", icon("globe"), "\uc88c\ud45c\uacc4", self._crs)
 
         self._geometry = GeometryPanel(self.controller)
-        self.add_panel("geometry", "G", "Geometry", self._geometry)
+        self.add_panel("geometry", icon("layers"), "Geometry", self._geometry)
 
         self._preview = PreviewPanel()
-        self.add_panel("preview", "P", "\ubbf8\ub9ac\ubcf4\uae30", self._preview)
+        self.add_panel("preview", icon("eye"), "\ubbf8\ub9ac\ubcf4\uae30", self._preview)
 
         self.add_sidebar_separator("\ucd9c\ub825")
 
         # -- Post-conversion --
         self._log = LogPanel()
-        self.add_panel("log", "L", "\ub85c\uadf8", self._log)
+        self.add_panel("log", icon("terminal"), "\ub85c\uadf8", self._log)
 
         self._results = ResultsPanel()
-        self.add_panel("results", "R", "\uacb0\uacfc", self._results)
+        self.add_panel("results", icon("star"), "\uacb0\uacfc", self._results)
 
         self._feathering = FeatheringPanel()
-        self.add_panel("feathering", "F", "Feathering", self._feathering)
+        self.add_panel("feathering", icon("waves"), "Feathering", self._feathering)
 
         self._comparison = ComparisonPanel(self.controller)
-        self.add_panel("comparison", "D", "\ube44\uad50", self._comparison)
+        self.add_panel("comparison", icon("arrow-left-right"), "\ube44\uad50", self._comparison)
 
         self._help = HelpPanel()
-        self.add_panel("help", "?", "\ub3c4\uc6c0\ub9d0", self._help)
+        self.add_panel("help", icon("info"), "\ub3c4\uc6c0\ub9d0", self._help)
 
     # ------------------------------------------------------------------ #
     #  Navigation
@@ -819,17 +820,20 @@ class P190App(GeoViewApp):
 
         if panel_id == "input":
             self.top_bar.set_title("P190 NavConverter")
-            self.top_bar.add_action_button(
+            btn = self.top_bar.add_action_button(
                 "\ubcc0\ud658", self.start_conversion, primary=True)
+            set_help(btn, "Start P190 conversion (Ctrl+Enter)")
 
         elif panel_id in ("header", "crs", "geometry", "preview"):
-            self.top_bar.add_action_button(
+            btn = self.top_bar.add_action_button(
                 "\ubcc0\ud658", self.start_conversion, primary=True)
+            set_help(btn, "Start P190 conversion (Ctrl+Enter)")
 
         elif panel_id == "results":
-            self.top_bar.add_action_button(
+            btn = self.top_bar.add_action_button(
                 "\uc0c8 \ubcc0\ud658",
                 lambda: self._switch_to("input"))
+            set_help(btn, "Start a new conversion")
 
     # ------------------------------------------------------------------ #
     #  Shortcuts

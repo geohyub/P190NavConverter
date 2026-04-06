@@ -43,8 +43,12 @@ from desktop.services.output_package_service import (
 )
 from desktop.services.export_service import export_package_manifest
 
-MPL_BG = "#0a0e17"
-MPL_FG = "#94a3b8"
+MPL_BG = Dark.BG
+MPL_FG = "#94a3b8"  # matplotlib text -- slightly lighter than Dark.MUTED for readability
+MPL_GRID = Dark.SLATE  # #1E293B -- grid/spine color
+_STYLE_A = Dark.CYAN       # Style A accent
+_STYLE_B = "#EAB308"       # Style B yellow (app-specific, no Dark constant)
+_STYLE_DELTA = Dark.RED    # delta / difference accent
 
 
 class ComparisonPanel(QWidget):
@@ -300,19 +304,19 @@ class ComparisonPanel(QWidget):
         self._style_a_text = QPlainTextEdit()
         self._style_a_text.setReadOnly(True)
         self._style_a_text.setMinimumHeight(180)
-        self._style_a_text.setStyleSheet(_sync_style_sheet("#06B6D4"))
+        self._style_a_text.setStyleSheet(_sync_style_sheet(_STYLE_A))
         sync_row.addWidget(self._style_a_text, 5)
 
         self._style_delta_text = QPlainTextEdit()
         self._style_delta_text.setReadOnly(True)
         self._style_delta_text.setMinimumHeight(180)
-        self._style_delta_text.setStyleSheet(_sync_style_sheet("#EF4444"))
+        self._style_delta_text.setStyleSheet(_sync_style_sheet(_STYLE_DELTA))
         sync_row.addWidget(self._style_delta_text, 4)
 
         self._style_b_text = QPlainTextEdit()
         self._style_b_text.setReadOnly(True)
         self._style_b_text.setMinimumHeight(180)
-        self._style_b_text.setStyleSheet(_sync_style_sheet("#EAB308"))
+        self._style_b_text.setStyleSheet(_sync_style_sheet(_STYLE_B))
         sync_row.addWidget(self._style_b_text, 5)
 
         self._sync_card.content_layout.addLayout(sync_row)
@@ -405,10 +409,10 @@ class ComparisonPanel(QWidget):
             return column, label, open_btn, text, image
 
         left_column, self._evidence_a_title, self._open_evidence_a_btn, self._evidence_a_text, self._evidence_a_image = _build_evidence_column(
-            "Style A Evidence", "#06B6D4"
+            "Style A Evidence", _STYLE_A
         )
         right_column, self._evidence_b_title, self._open_evidence_b_btn, self._evidence_b_text, self._evidence_b_image = _build_evidence_column(
-            "Style B Evidence", "#EAB308"
+            "Style B Evidence", _STYLE_B
         )
         self._open_evidence_a_btn.clicked.connect(lambda: self._open_selected_evidence("A"))
         self._open_evidence_b_btn.clicked.connect(lambda: self._open_selected_evidence("B"))
@@ -684,8 +688,8 @@ class ComparisonPanel(QWidget):
                 1 for artifact in (art_a, art_b) if artifact is not None and artifact.exists
             )
             active = key == artifact_key
-            border = Dark.CYAN if active else (Dark.BORDER if ready_count == 2 else "#5B6474")
-            background = Dark.NAVY if ready_count else "#111827"
+            border = Dark.CYAN if active else (Dark.BORDER if ready_count == 2 else Dark.SURFACE)
+            background = Dark.NAVY if ready_count else Dark.BG_ALT
             foreground = Dark.TEXT if ready_count else Dark.MUTED
             button.setStyleSheet(f"""
                 QPushButton {{
@@ -1019,23 +1023,23 @@ class ComparisonPanel(QWidget):
         diffs = self._result.source_diffs
         x = list(range(len(diffs)))
         if len(diffs) > 200:
-            self._ax.plot(x, diffs, color="#F59E0B", linewidth=1.2)
-            self._ax.fill_between(x, diffs, 0, color="#F59E0B", alpha=0.18)
+            self._ax.plot(x, diffs, color=Dark.ORANGE, linewidth=1.2)
+            self._ax.fill_between(x, diffs, 0, color=Dark.ORANGE, alpha=0.18)
         else:
-            self._ax.bar(x, diffs, color="#F59E0B", alpha=0.75, width=0.9)
-        self._ax.axhline(self._result.source_dist_mean, color="#06B6D4",
+            self._ax.bar(x, diffs, color=Dark.ORANGE, alpha=0.75, width=0.9)
+        self._ax.axhline(self._result.source_dist_mean, color=Dark.CYAN,
                          linewidth=1.0, linestyle="--")
-        self._ax.axhline(self._result.source_dist_p95, color="#EF4444",
+        self._ax.axhline(self._result.source_dist_p95, color=Dark.RED,
                          linewidth=1.0, linestyle=":")
 
         if self._selected_ffid in self._ffids:
             selected_index = self._ffids.index(self._selected_ffid)
-            self._ax.axvline(selected_index, color="#FFFFFF",
+            self._ax.axvline(selected_index, color=Dark.TEXT_BRIGHT,
                              linewidth=1.0, linestyle="-.", alpha=0.85)
 
         if self._result.worst_ffid in self._ffids:
             worst_index = self._ffids.index(self._result.worst_ffid)
-            self._ax.axvline(worst_index, color="#F97316",
+            self._ax.axvline(worst_index, color="#F97316",  # deep-orange accent
                              linewidth=1.0, linestyle=":", alpha=0.8)
 
         self._ax.set_xlabel("Matched Shot Order", color=MPL_FG, fontsize=9)
@@ -1045,9 +1049,9 @@ class ComparisonPanel(QWidget):
             f"{self._result.grade} | Mean {self._result.source_dist_mean:.2f} m | P95 {self._result.source_dist_p95:.2f} m",
             color=MPL_FG, fontsize=10)
         self._ax.tick_params(colors=MPL_FG, labelsize=8)
-        self._ax.grid(axis="y", color="#1e293b", linewidth=0.5, alpha=0.6)
+        self._ax.grid(axis="y", color=MPL_GRID, linewidth=0.5, alpha=0.6)
         for spine in self._ax.spines.values():
-            spine.set_color("#1e293b")
+            spine.set_color(MPL_GRID)
         self._fig.tight_layout()
         self._canvas.draw()
 
@@ -1105,9 +1109,9 @@ class ComparisonPanel(QWidget):
 
         self._detail_ax.clear()
         self._detail_ax.set_facecolor(MPL_BG)
-        self._detail_ax.grid(True, color="#1e293b", linewidth=0.4, alpha=0.5)
+        self._detail_ax.grid(True, color=MPL_GRID, linewidth=0.4, alpha=0.5)
         for spine in self._detail_ax.spines.values():
-            spine.set_color("#1e293b")
+            spine.set_color(MPL_GRID)
         self._detail_ax.tick_params(colors=MPL_FG, labelsize=8)
 
         src_a = pos["src_a"]
@@ -1118,26 +1122,26 @@ class ComparisonPanel(QWidget):
         if rx_a:
             ax_x = [src_a[0]] + [r[0] for r in rx_a]
             ax_y = [src_a[1]] + [r[1] for r in rx_a]
-            self._detail_ax.plot(ax_x, ax_y, "-o", color="#06B6D4",
+            self._detail_ax.plot(ax_x, ax_y, "-o", color=_STYLE_A,
                                  linewidth=1.2, markersize=3, label="Style A")
         else:
-            self._detail_ax.plot(src_a[0], src_a[1], "D", color="#06B6D4",
+            self._detail_ax.plot(src_a[0], src_a[1], "D", color=_STYLE_A,
                                  markersize=7, label="Style A")
 
         if rx_b:
             bx_x = [src_b[0]] + [r[0] for r in rx_b]
             bx_y = [src_b[1]] + [r[1] for r in rx_b]
-            self._detail_ax.plot(bx_x, bx_y, "-o", color="#EAB308",
+            self._detail_ax.plot(bx_x, bx_y, "-o", color=_STYLE_B,
                                  linewidth=1.2, markersize=3, label="Style B")
         else:
-            self._detail_ax.plot(src_b[0], src_b[1], "D", color="#EAB308",
+            self._detail_ax.plot(src_b[0], src_b[1], "D", color=_STYLE_B,
                                  markersize=7, label="Style B")
 
         self._detail_ax.plot(
             [src_a[0], src_b[0]],
             [src_a[1], src_b[1]],
             "--",
-            color="#EF4444",
+            color=_STYLE_DELTA,
             linewidth=1.0,
             alpha=0.8,
         )
@@ -1147,7 +1151,7 @@ class ComparisonPanel(QWidget):
                 [rx1[0], rx2[0]],
                 [rx1[1], rx2[1]],
                 ":",
-                color="#94A3B8",
+                color=MPL_FG,
                 linewidth=0.7,
                 alpha=0.5,
             )
@@ -1171,7 +1175,7 @@ class ComparisonPanel(QWidget):
             fontsize=8,
             loc="upper left",
             facecolor=MPL_BG,
-            edgecolor="#1e293b",
+            edgecolor=MPL_GRID,
             labelcolor=MPL_FG,
         )
         self._detail_fig.tight_layout()
@@ -1293,9 +1297,9 @@ class ComparisonPanel(QWidget):
         channel_df = self._result.channel_deltas_for_ffid(ffid)
         self._channel_profile_ax.clear()
         self._channel_profile_ax.set_facecolor(MPL_BG)
-        self._channel_profile_ax.grid(True, axis="y", color="#1e293b", linewidth=0.4, alpha=0.5)
+        self._channel_profile_ax.grid(True, axis="y", color=MPL_GRID, linewidth=0.4, alpha=0.5)
         for spine in self._channel_profile_ax.spines.values():
-            spine.set_color("#1e293b")
+            spine.set_color(MPL_GRID)
         self._channel_profile_ax.tick_params(colors=MPL_FG, labelsize=8)
 
         if channel_df.empty:
@@ -1309,14 +1313,14 @@ class ComparisonPanel(QWidget):
         self._channel_profile_ax.bar(
             channels,
             distances,
-            color="#22C55E",
+            color=Dark.GREEN,
             alpha=0.8,
             width=0.8,
         )
         mean_dist = channel_df["dist"].mean()
         self._channel_profile_ax.axhline(
             mean_dist,
-            color="#06B6D4",
+            color=Dark.CYAN,
             linewidth=1.0,
             linestyle="--",
             alpha=0.9,
@@ -1324,7 +1328,7 @@ class ComparisonPanel(QWidget):
         peak_row = channel_df.sort_values("dist", ascending=False).iloc[0]
         self._channel_profile_ax.axvline(
             int(peak_row["channel"]),
-            color="#F97316",
+            color="#F97316",  # deep-orange peak marker (app-specific)
             linewidth=1.0,
             linestyle=":",
             alpha=0.75,

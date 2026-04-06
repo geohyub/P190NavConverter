@@ -15,10 +15,10 @@ from geoview_pyside6.constants import Dark, Font, Space, Radius
 from desktop.widgets.step_indicator import StepIndicator
 
 LOG_COLORS = {
-    "info":    "#94A3B8",
-    "success": "#10B981",
-    "warning": "#F59E0B",
-    "error":   "#EF4444",
+    "info":    Dark.MUTED,
+    "success": Dark.GREEN,
+    "warning": Dark.ORANGE,
+    "error":   Dark.RED,
 }
 
 
