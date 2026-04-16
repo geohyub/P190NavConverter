@@ -232,16 +232,24 @@ def parse_npd(
             )
         sel = all_sources[source]
     else:
-        # Partial, case-insensitive match
-        source_lower = source.lower()
-        matches = [s for s in all_sources
-                    if source_lower in s["name"].lower()]
-        if not matches:
-            raise ValueError(
-                f"Source '{source}' not found. "
-                f"Available: {[s['name'] for s in all_sources]}"
-            )
-        sel = matches[0]
+        source_lower = source.lower().strip()
+        exact_matches = [s for s in all_sources if s["name"].lower() == source_lower]
+        if exact_matches:
+            sel = exact_matches[0]
+        else:
+            # Partial, case-insensitive match
+            matches = [s for s in all_sources if source_lower in s["name"].lower()]
+            if not matches:
+                raise ValueError(
+                    f"Source '{source}' not found. "
+                    f"Available: {[s['name'] for s in all_sources]}"
+                )
+            if len(matches) > 1:
+                raise ValueError(
+                    f"Source '{source}' is ambiguous. "
+                    f"Matches: {[s['name'] for s in matches]}"
+                )
+            sel = matches[0]
 
     col_map = sel["col_indices"]
     time_col = info["time_col"]

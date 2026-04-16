@@ -50,6 +50,7 @@ class FileDropZone(_SharedFileDropZone):
             title=label,
             icon_name="upload",
             compact=True,
+            min_size=100,
             parent=parent,
         )
         self.setFixedHeight(80)

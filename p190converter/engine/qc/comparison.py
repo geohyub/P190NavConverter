@@ -184,30 +184,70 @@ def _parse_p190_records(filepath: Union[str, Path]) -> Tuple[pd.DataFrame, Dict]
     s_records = []
     rx_dict: Dict[int, List[Tuple[float, float]]] = {}
     current_ffid = None
+    current_source: Tuple[float, float] | None = None
+    current_rx: List[Tuple[float, float]] = []
+    seen_sources: Dict[int, Tuple[float, float]] = {}
+    seen_rx: Dict[int, List[Tuple[float, float]]] = {}
+
+    def finalize_current_shot() -> None:
+        nonlocal current_ffid, current_source, current_rx
+        if current_ffid is None or current_source is None:
+            return
+
+        previous = seen_sources.get(current_ffid)
+        if previous is None:
+            seen_sources[current_ffid] = current_source
+            seen_rx[current_ffid] = list(current_rx)
+            s_records.append({
+                "ffid": current_ffid,
+                "easting": current_source[0],
+                "northing": current_source[1],
+            })
+            rx_dict[current_ffid] = list(current_rx)
+            return
+
+        same_source = (
+            math.isclose(previous[0], current_source[0], abs_tol=0.05)
+            and math.isclose(previous[1], current_source[1], abs_tol=0.05)
+        )
+        if not same_source:
+            raise ValueError(
+                "Duplicate S record FFID with conflicting source "
+                f"coordinates detected: {current_ffid}"
+            )
+
+        if seen_rx[current_ffid] != current_rx:
+            raise ValueError(
+                "Duplicate S record FFID with conflicting receiver "
+                f"geometry detected: {current_ffid}"
+            )
+
+        current_ffid = None
+        current_source = None
+        current_rx = []
 
     with open(filepath, "r", encoding="utf-8", errors="replace") as f:
         for line in f:
             padded = line.rstrip().ljust(80)
 
             if line.startswith("S"):
+                finalize_current_shot()
                 try:
                     ffid = int(padded[19:25].strip())
                     easting = float(padded[46:55].strip())
                     northing = float(padded[55:64].strip())
-                    s_records.append({
-                        "ffid": ffid,
-                        "easting": easting,
-                        "northing": northing,
-                    })
-                    current_ffid = ffid
                 except (ValueError, IndexError):
+                    current_ffid = None
+                    current_source = None
+                    current_rx = []
                     continue
+
+                current_ffid = ffid
+                current_source = (easting, northing)
+                current_rx = []
 
             elif line.startswith("R") and current_ffid is not None:
                 try:
-                    if current_ffid not in rx_dict:
-                        rx_dict[current_ffid] = []
-
                     # 3 groups per line, each 26 chars starting at offset 1
                     for j in range(3):
                         grp_start = 1 + j * 26
@@ -218,7 +258,7 @@ def _parse_p190_records(filepath: Union[str, Path]) -> Tuple[pd.DataFrame, Dict]
                         n_str = grp[13:22].strip()
 
                         if ch_str and e_str and n_str:
-                            rx_dict[current_ffid].append(
+                            current_rx.append(
                                 (float(e_str), float(n_str))
                             )
                 except (ValueError, IndexError):
@@ -227,7 +267,12 @@ def _parse_p190_records(filepath: Union[str, Path]) -> Tuple[pd.DataFrame, Dict]
             elif not line.startswith("R"):
                 # Non-R, non-S line resets current FFID tracking
                 if not line.startswith("H"):
+                    finalize_current_shot()
                     current_ffid = None
+                    current_source = None
+                    current_rx = []
+
+    finalize_current_shot()
 
     s_df = pd.DataFrame(s_records)
     return s_df, rx_dict

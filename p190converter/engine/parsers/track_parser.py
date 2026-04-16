@@ -22,6 +22,32 @@ class TrackData:
 
 REQUIRED_COLUMNS = ["FFID", "SOU_X", "SOU_Y", "DAY", "HOUR", "MINUTE", "SECOND"]
 OPTIONAL_COLUMNS = ["TRACENO", "CHAN", "REC_X", "REC_Y", "DIRECTION"]
+SHOT_IDENTITY_COLUMNS = ["SOU_X", "SOU_Y", "DAY", "HOUR", "MINUTE", "SECOND"]
+
+
+def _find_conflicting_duplicate_ffids(df: pd.DataFrame) -> list[int]:
+    """Return FFIDs whose duplicate rows disagree on shot-defining fields.
+
+    Track exports often repeat FFIDs across channels. That is fine when the
+    repeated rows describe the same shot/time/source position. It is *not*
+    fine when duplicate FFIDs disagree on those core fields, because grouping
+    with ``first()`` would silently pick one geometry story and hide the
+    inconsistency.
+    """
+    if "FFID" not in df.columns:
+        return []
+
+    duplicate_mask = df.duplicated(subset=["FFID"], keep=False)
+    if not duplicate_mask.any():
+        return []
+
+    conflicts: list[int] = []
+    subset = df.loc[duplicate_mask, ["FFID", *SHOT_IDENTITY_COLUMNS]].copy()
+    for ffid, group in subset.groupby("FFID", sort=True):
+        signatures = group[SHOT_IDENTITY_COLUMNS].drop_duplicates()
+        if len(signatures) > 1:
+            conflicts.append(int(ffid))
+    return conflicts
 
 
 def parse_track_file(filepath: Union[str, Path]) -> TrackData:
@@ -57,6 +83,15 @@ def parse_track_file(filepath: Union[str, Path]) -> TrackData:
 
     rename = {source: normalized for normalized, source in col_map.items()}
     df = df.rename(columns=rename)
+
+    conflicts = _find_conflicting_duplicate_ffids(df)
+    if conflicts:
+        sample = ", ".join(str(ffid) for ffid in conflicts[:5])
+        raise ValueError(
+            "Conflicting duplicate FFID rows detected in Track file. "
+            "A single FFID should not map to multiple shot times/source "
+            f"positions. FFID(s): {sample}"
+        )
 
     n_channels = 0
     if "CHAN" in df.columns:

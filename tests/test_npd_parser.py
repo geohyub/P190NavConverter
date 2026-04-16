@@ -4,6 +4,7 @@ import sys
 import os
 import tempfile
 import warnings
+import pytest
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
@@ -152,6 +153,21 @@ def test_parse_npd_source_by_name():
     try:
         df = parse_npd(path, source="Tail")
         assert abs(df["east"].iloc[0] - 600000.0) < 0.01
+    finally:
+        os.unlink(path)
+
+
+def test_parse_npd_ambiguous_source_match_raises():
+    content = (
+        "D,Position: Head_Buoy: East,North,Lat,Long,Height,O,"
+        "Position: Tail_Buoy: East,North,Lat,Long,Height\n"
+        "12:00:00.000,500000.0,3900000.0,35.0,129.0,0.0,O,"
+        "600000.0,4000000.0,36.0,130.0,0.0\n"
+    )
+    path = _write_npd_file(content)
+    try:
+        with pytest.raises(ValueError):
+            parse_npd(path, source="Buoy")
     finally:
         os.unlink(path)
 

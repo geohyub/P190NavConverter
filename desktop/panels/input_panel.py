@@ -11,6 +11,7 @@ from PySide6.QtWidgets import (
     QCheckBox, QFileDialog, QSizePolicy,
 )
 
+from geoview_common.file_validator import validate_file, validate_files
 from geoview_pyside6.constants import Dark, Font, Space, Radius
 
 from desktop.widgets.section_card import SectionCard
@@ -450,9 +451,16 @@ class InputPanel(QWidget):
             paths, _ = QFileDialog.getOpenFileNames(
                 self, "Select Batch Files", "",
                 "TSV Files (*.txt *.tsv);;All (*)")
-            if paths:
-                self._batch_files = paths
-                self._batch_info.setText(f"{len(paths)} files selected")
+            valid_paths, errors = validate_files(
+                paths,
+                min_size=100,
+                extensions={".txt", ".tsv"},
+            )
+            if errors:
+                self._controller.show_toast(errors[0][1], "warning")
+            if valid_paths:
+                self._batch_files = valid_paths
+                self._batch_info.setText(f"{len(valid_paths)} files selected")
                 self._batch_info.setVisible(True)
             else:
                 self._batch_check.setChecked(False)
@@ -464,10 +472,17 @@ class InputPanel(QWidget):
                 npd_files = sorted(glob.glob(
                     str(Path(folder) / "*.NPD")) + glob.glob(
                     str(Path(folder) / "*.npd")))
-                if npd_files:
-                    self._batch_files = npd_files
+                valid_paths, errors = validate_files(
+                    npd_files,
+                    min_size=100,
+                    extensions={".npd"},
+                )
+                if errors:
+                    self._controller.show_toast(errors[0][1], "warning")
+                if valid_paths:
+                    self._batch_files = valid_paths
                     self._batch_info.setText(
-                        f"{len(npd_files)} NPD files found")
+                        f"{len(valid_paths)} NPD files found")
                     self._batch_info.setVisible(True)
                 else:
                     self._controller.show_toast(
@@ -507,6 +522,10 @@ class InputPanel(QWidget):
         self._controller.profile_deleted.emit(name)
 
     def _handle_file_selected(self, file_type: str, path: str):
+        is_valid, message = validate_file(path, min_size=100)
+        if not is_valid:
+            self._controller.show_toast(message, "warning")
+            return
         self._refresh_explanation()
         self.file_loaded.emit(file_type, path)
 

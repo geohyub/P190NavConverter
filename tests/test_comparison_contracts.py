@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import pytest
+
 from p190converter.engine.qc.comparison import (
     _parse_s_records,
     compare_p190_files,
@@ -93,3 +95,45 @@ def test_parse_s_records_returns_s_dataframe(tmp_path: Path):
 
     assert list(df.columns) == ["ffid", "easting", "northing"]
     assert df["ffid"].tolist() == [1001, 1002]
+
+
+def test_compare_p190_files_rejects_conflicting_duplicate_s_records(tmp_path: Path):
+    style_a = tmp_path / "style_a_dup.p190"
+    style_b = tmp_path / "style_b.p190"
+    style_a.write_text(
+        "".join(
+            [
+                _s_line(1001, 500000.0, 3800000.0),
+                _r_line([(1, 500010.0, 3800002.0)]),
+                _s_line(1001, 500040.0, 3800000.0),
+                _r_line([(1, 500050.0, 3800002.0)]),
+            ]
+        ),
+        encoding="utf-8",
+    )
+    _write_sample_p190(style_b, x_offset=0.0)
+
+    with pytest.raises(ValueError, match="Duplicate S record FFID"):
+        compare_p190_files(style_a, style_b)
+
+
+def test_compare_p190_files_rejects_duplicate_s_records_with_conflicting_rx_geometry(
+    tmp_path: Path,
+):
+    style_a = tmp_path / "style_a_rx_dup.p190"
+    style_b = tmp_path / "style_b.p190"
+    style_a.write_text(
+        "".join(
+            [
+                _s_line(1001, 500000.0, 3800000.0),
+                _r_line([(1, 500010.0, 3800002.0)]),
+                _s_line(1001, 500000.0, 3800000.0),
+                _r_line([(1, 500999.0, 3800002.0)]),
+            ]
+        ),
+        encoding="utf-8",
+    )
+    _write_sample_p190(style_b, x_offset=0.0)
+
+    with pytest.raises(ValueError, match="conflicting receiver geometry"):
+        compare_p190_files(style_a, style_b)

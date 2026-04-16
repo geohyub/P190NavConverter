@@ -71,8 +71,8 @@ class P190App(GeoViewApp):
 
     def __init__(self):
         self.controller = AppController()
-        self._settings = SettingsService()
-        self._language = LanguageService(self._settings.load_ui_language())
+        self._session_settings = SettingsService()
+        self._language = LanguageService(self._session_settings.load_ui_language())
         super().__init__()
 
         self._comparison.set_language_service(self._language)
@@ -207,7 +207,7 @@ class P190App(GeoViewApp):
 
     def _on_language_changed(self, language: str):
         try:
-            self._settings.save_ui_language(language)
+            self._session_settings.save_ui_language(language)
         except Exception:
             pass
 
@@ -533,7 +533,7 @@ class P190App(GeoViewApp):
 
         # Save config for next session
         try:
-            self._settings.save_session(
+            self._session_settings.save_session(
                 input_vals, self._crs.get_crs_config(),
                 self._geometry.get_geometry(),
                 self._header.get_h_record_config())
@@ -692,7 +692,7 @@ class P190App(GeoViewApp):
         # Refresh profile list
         self._input.refresh_profiles()
 
-        saved = self._settings.load_session()
+        saved = self._session_settings.load_session()
         if not saved:
             return
         try:
@@ -772,14 +772,14 @@ class P190App(GeoViewApp):
         h_config = self._header.get_h_record_config()
         data["h_records"] = h_config.records
 
-        self._settings.save_profile(name, data)
+        self._session_settings.save_profile(name, data)
         self._input.refresh_profiles()
         self.controller.show_toast(f"Profile '{name}' saved", "success")
         self._log.append("success", f"Profile '{name}' saved")
 
     def _load_profile(self, name: str):
         """Load a named profile and restore all panels."""
-        data = self._settings.load_profile(name)
+        data = self._session_settings.load_profile(name)
         if not data:
             self.controller.show_toast(
                 f"Profile '{name}' not found", "error")
@@ -796,7 +796,7 @@ class P190App(GeoViewApp):
 
     def _delete_profile(self, name: str):
         """Delete a named profile."""
-        if self._settings.delete_profile(name):
+        if self._session_settings.delete_profile(name):
             self._input.refresh_profiles()
             self.controller.show_toast(
                 f"Profile '{name}' deleted", "success")

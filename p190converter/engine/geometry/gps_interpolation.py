@@ -169,6 +169,8 @@ def interpolate_gps_at_times(
     # Also handle query_times: if they fall before NPD start, they might
     # be next-day times that need +86400
     q_times = query_times.copy()
+    if q_times.size == 0:
+        return np.array([]), np.array([])
     npd_start = t[0]
     npd_end = t[-1]
     # Check if query times don't overlap with NPD range — likely next day
@@ -205,23 +207,20 @@ def interpolate_gps_at_times(
     out_of_range = (q_times < t_min) | (q_times > t_max)
     if out_of_range.any():
         n_out = out_of_range.sum()
-        warnings.warn(
+        raise ValueError(
             f"{n_out} query times outside NPD range "
-            f"[{t_min:.1f}, {t_max:.1f}] — will be clamped"
+            f"[{t_min:.1f}, {t_max:.1f}]"
         )
-
-    # Clamp query times to NPD range
-    q_clamped = np.clip(q_times, t_min, t_max)
 
     # Interpolate
     if method == "cubic" and HAS_SCIPY and len(update_t) >= 4:
         cs_east = CubicSpline(update_t, update_e, bc_type="natural")
         cs_north = CubicSpline(update_t, update_n, bc_type="natural")
-        east_out = cs_east(q_clamped)
-        north_out = cs_north(q_clamped)
+        east_out = cs_east(q_times)
+        north_out = cs_north(q_times)
     else:
-        east_out = np.interp(q_clamped, update_t, update_e)
-        north_out = np.interp(q_clamped, update_t, update_n)
+        east_out = np.interp(q_times, update_t, update_e)
+        north_out = np.interp(q_times, update_t, update_n)
 
     return east_out, north_out
 
